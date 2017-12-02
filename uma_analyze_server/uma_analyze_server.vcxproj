@@ -133,25 +133,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\DataStructure.cpp" />
-    <ClCompile Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\FileReader.cpp" />
-    <ClCompile Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\UmaDataAnalyzer.cpp" />
+    <ClCompile Include="analyzer\DataStructure.cpp" />
+    <ClCompile Include="analyzer\FileReader.cpp" />
+    <ClCompile Include="analyzer\UmaDataAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
+    <ClCompile Include="simulator\simulator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\DataStructure.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\FileReader.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\statistics.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\StringManipulator.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\analyzer\UmaDataAnalyzer.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\linear\linear.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\linear\matrix.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\linear\RotateMatrix.hpp" />
-    <ClInclude Include="..\..\..\..\..\Desktop\uma-master\src\linear\vector.hpp" />
+    <ClInclude Include="analyzer\DataStructure.hpp" />
+    <ClInclude Include="analyzer\FileReader.hpp" />
+    <ClInclude Include="analyzer\statistics.hpp" />
+    <ClInclude Include="analyzer\StringManipulator.hpp" />
+    <ClInclude Include="analyzer\UmaDataAnalyzer.hpp" />
+    <ClInclude Include="linear\linear.hpp" />
+    <ClInclude Include="linear\matrix.hpp" />
+    <ClInclude Include="linear\RotateMatrix.hpp" />
+    <ClInclude Include="linear\vector.hpp" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
+    <ClInclude Include="simulator\simulator.hpp" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="JVDTLabLib.1.18.dll">
