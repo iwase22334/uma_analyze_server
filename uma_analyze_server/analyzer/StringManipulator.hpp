@@ -4,42 +4,41 @@
 #include <vector>
 #include <cassert>
 namespace str_manip{
-	//----------------------------------------------------------
-	// Manipulator
-	// 		analyze std::String in cell and set result to <dest>. 
-	//		Derive this class and override analyze funcion.
-	// Template parameters:
-	// 		T         output class
-	//----------------------------------------------------------
+	/**
+	 * @brief 
+	 *  analyze std::String in cell and set result to <dest>. 
+	 *  Derive this class and override analyze funcion.
+	 * @tparam T class of destination value.
+	 */
 	template<class T>
 	struct Manipulator
 	{
-		virtual bool analyze(T* const dest, const std::string& cell) const 
+		virtual bool analyze(T& dest, const std::string& cell) const 
 		{
 			return true;
 		};
 	};
 
-	//----------------------------------------------------------
-	// LineAnalyzer
-	// Template parameters:
-	// 		T         output class
-	//----------------------------------------------------------
+	/**
+	 * @brief analyze std::String in cell and set result to <dest>. 
+	 *  Derive this class and override analyze funcion. 
+	 * @tparam T 
+	 */
 	template<class T>
 	struct LineAnalyzer
 	{
-		virtual bool analyze(T* const dest, const std::vector<std::string> line)
+		virtual bool analyze(T& dest, const std::vector<std::string> line)
 		{
 			return true;
 		};
 	};
 
-	//----------------------------------------------------------
-	// ManipulatorArray
-	// Template parameters:
-	// 		T         output class
-	//		T_Manips  Manipulators
-	//----------------------------------------------------------
+	/**
+	 * @brief Manipulator allay for line that pharsed and aligned as vector
+	 * 
+	 * @tparam T destination class 
+	 * @tparam T_Manips manipulator class array
+	 */
 	template<class T, class... T_Manips>
 	struct ManipulatorArray : public LineAnalyzer<T>
 	{
@@ -52,14 +51,15 @@ namespace str_manip{
 		}
 
 	public:
-		//----------------------------------------------------------
-		// analyze
-		//		Analyze inputed text line.
-		// Parameters:
-		// 		dest      destination structure
-		// 		line   	  input text line
-		//----------------------------------------------------------
-		bool analyze(T* const dest, const std::vector<std::string>& line)
+		/**
+		 * @brief analyze line that is pharsed and represented as vector
+		 * 
+		 * @param dest return value
+		 * @param line 
+		 * @return true All manipulator got valid value 
+		 * @return false one or more manipulator got invalid value
+		 */
+		bool analyze(T& dest, const std::vector<std::string>& line)
 		{
 			bool valid = true;
 			
@@ -71,16 +71,11 @@ namespace str_manip{
 			}
 			return valid;
 		};
+
 	private:
-		//----------------------------------------------------------
-		// make_maniprator_array
-		// 		Extract T_Manips instance to std::vector
-		//		Called from analyze(...) function only.
-		// Template Parameters:
-		//		Head 	Head in Template parameter pack
-		//		Tail 	Other parameters in template parameter pack
-		//----------------------------------------------------------
+
 		void make_maniprator_array() {};
+		
 		template<class Head, class... Tail>
 		void make_maniprator_array(Head&& head, Tail&&... tail)
 		{

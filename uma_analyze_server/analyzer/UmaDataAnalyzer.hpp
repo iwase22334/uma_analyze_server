@@ -34,26 +34,24 @@ namespace uda{
 		} 
 	};
 
-	//----------------------------------------------------------
-	// GetWinSample
-	// Parameters:
-	// 		dst       destination 
-	// 		src   	  sorce
-	//----------------------------------------------------------
 	struct GetWinSample
 	{
-		bool compare(const Horse&, const Horse&) const;
+
+		bool compare(const Horse& h1, const Horse& h2) const
+		{
+			return h1.rank < h2.rank;
+		};
+
 	};
 
-	//----------------------------------------------------------
-	// LoseWinSample
-	// Parameters:
-	// 		dst       destination 
-	// 		src   	  sorce
-	//----------------------------------------------------------
 	struct GetLoseSample
 	{
-		bool compare(const Horse&, const Horse&) const;
+
+		bool compare(const Horse& h1, const Horse& h2) const
+		{
+			return h1.rank > h2.rank;
+		};
+
 	};
 
 	//----------------------------------------------------------
