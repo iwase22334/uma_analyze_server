@@ -48,10 +48,11 @@ BOOST_AUTO_TEST_CASE(case2)
     BOOST_CHECK_EQUAL(std::string(f2.result_ptr->a, 10) == std::string("CDEFGHIJKL"), true);
     BOOST_CHECK_EQUAL(std::string(f3.result_ptr->a, 11) == std::string("EDEFGHIJKLa"), true);
     
-    BOOST_CHECK_EQUAL(filter_array.caught_[0], true);
-    BOOST_CHECK_EQUAL(filter_array.caught_[1], true);
-    BOOST_CHECK_EQUAL(filter_array.caught_[2], true);
+    BOOST_CHECK_EQUAL(filter_array.is_caught(0), true);
+    BOOST_CHECK_EQUAL(filter_array.is_caught(1), true);
+    BOOST_CHECK_EQUAL(filter_array.is_caught(2), true);
 
+    BOOST_CHECK_EQUAL(filter_array.is_caught_all(), true);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
