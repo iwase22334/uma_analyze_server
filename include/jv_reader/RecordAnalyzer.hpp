@@ -1,10 +1,6 @@
-#ifndef RECORD_ANALYZER_HPP
-#define RECORD_ANALYZER_HPP
-
 #include "StringManipulator.hpp"
 #include "DataStructure.hpp"
 #include <string>
-
 /**
  * @brief string manipulators
  * 
@@ -456,5 +452,3 @@ namespace smanip
     };
     
 };
-
-#endif /* RECORD_ANALYZER_HPP */

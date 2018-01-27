@@ -4,13 +4,12 @@
 #include <cmath>
 
 namespace sta{
-	//----------------------------------------------------------
-	// Epanechnikov Kernel
-	// Template parameters:
-	// 		T         Input class
-	// Parameters:
-	// 		x   	  function input
-	//----------------------------------------------------------
+
+	/**
+	 * @brief Kernel for KerDensityEstimation
+	 * 
+	 * @tparam T 
+	 */
 	template<class T>
 	struct EpanechnikovKernel
 	{
@@ -19,6 +18,12 @@ namespace sta{
 			return 1.0 / sqrt(2 * M_PI) * exp(- norm(x) * norm(x) / 2 );
 		};
 	};
+
+	/**
+	 * @brief Kernel for KErDensityEstimation
+	 * 
+	 * @tparam  
+	 */
 	template<>
 	class EpanechnikovKernel<double>
 	{
@@ -28,18 +33,14 @@ namespace sta{
 		};
 	};
 
-	//----------------------------------------------------------
-	// Kernel Density Estimation 
-	// Template parameters:
-	// 		I         Input class
-	// 		T_Kernel  Kernel function object
-	// Parameters:
-	// 		h         band width
-	// 		x   	  function input
-	//		sample    sample list
-	//----------------------------------------------------------
+	/**
+	 * @brief kernel density estimation
+	 * 
+	 * @tparam I  
+	 * @tparam T_Kernel 
+	 */
 	template<class I, class T_Kernel>
-	struct KerDensityEstimation
+	struct KDensityEstimator
 	{
 		double operator()(const double h, const I x, const std::list<I>& sample)
 		{
