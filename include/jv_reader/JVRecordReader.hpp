@@ -16,9 +16,17 @@
  */
 template<typename T, char C1, char C2>
 struct JVRecordFilter {
+public:
+    using result_type = T;
+
+public:
+    bool caught;
     std::unique_ptr<T> result_ptr;
     
-    JVRecordFilter() : result_ptr(new T()) {};
+public:
+    JVRecordFilter() : caught(false), result_ptr(new T()) {};
+    JVRecordFilter(JVRecordFilter&& rf) noexcept
+        : caught(std::move(rf.caught)), result_ptr(std::move(rf.result_ptr)){};
 
     bool read(const std::string str) {
 
@@ -26,20 +34,27 @@ struct JVRecordFilter {
             assert(sizeof(T) == str.size());
             result_ptr.reset(new T());
             std::memcpy(result_ptr.get(), str.c_str(), sizeof(T));
-            return true;
+            return (caught = true);
         }
         
         return false;
     };
 
+    void reset() { 
+        caught = false;
+        result_ptr.reset(new T());
+    };
 };
 
 template<class... Filters>
 class JVFilterArray {
 private:
     static constexpr std::size_t filter_size_ = sizeof...(Filters);
-    std::tuple<Filters...> filter_tuple_;
     std::array<bool, filter_size_> caught_;
+    std::tuple<Filters...> filter_tuple_;
+
+public:
+    static constexpr std::size_t filter_size = filter_size_;
 
 private:
     /**
@@ -105,23 +120,40 @@ private:
     template<class Head, class... Tail>
     struct string_fowarder
     {
-        void operator()(std::array<bool, filter_size_>& res, 
+        bool operator()(std::array<bool, filter_size_>& res,
                         std::tuple<Filters...>& fs,
-                        const std::string& str)
+                        const std::string& str) noexcept(false)
         {
-            res[Head::val] = std::get<Head::val>(fs).read(str) ? true : res[Head::val];
-            string_fowarder<Tail...>{}(res, fs, str);
+            bool rval = false;
+
+            if (!std::get<Head::val>(fs).read(str))
+                rval |= string_fowarder<Tail...>{}(res, fs, str);
+
+            else {
+                if(res[Head::val]) throw std::runtime_error("Filter value overwrited."); // filter value is replaced by new one
+                res[Head::val] = true;
+                rval = true;
+            }
+
+            return rval;
         };
     };
 
     template <class... Tail>
     struct string_fowarder< val_helper<filter_size_ - 1>, Tail...>
     {
-        void operator()(std::array<bool, filter_size_>& res,
+        bool operator()(std::array<bool, filter_size_>& res,
                         std::tuple<Filters...>& fs,
                         const std::string& str)
         {
-            res[filter_size_ - 1] = std::get<filter_size_ - 1>(fs).read(str) ? true : res[filter_size_ - 1]; 
+            bool rval = std::get<filter_size_ - 1>(fs).read(str);
+
+            if (rval) {
+                if(res[filter_size_ - 1]) throw std::runtime_error("Filter value overwrited.");; // filter value is replaced by new one
+                res[filter_size_ - 1] = true;
+            }
+
+            return rval; 
         };
     };
 
@@ -133,31 +165,71 @@ private:
      * @param dummy 
      */
     template<int Head, int... Tail>
-    void filter_all_(const std::string& str, const seq<Head, Tail...> dummy)
+    bool filter_all_(const std::string& str, const seq<Head, Tail...>&& dummy) noexcept(false)
     {
         // filter all
-        string_fowarder<val_helper<Head>, val_helper<Tail>...>
-                        {}(
+        return string_fowarder<val_helper<Head>, val_helper<Tail>...>{}
+                        (
                             this->caught_,
                             this->filter_tuple_,
                             str
                         );
+    }
+
+    template<class Head, class... Tail>
+    struct resetter
+    {
+        void operator()(std::tuple<Filters...>& fs)
+        {
+            std::get<Head::val>(fs).reset();
+            resetter<Tail...>{}(fs);
+        }
     };
-    
+
+    template<class... Tail>
+    struct resetter< val_helper<filter_size_ - 1>, Tail... >
+    {
+        void operator()(std::tuple<Filters...>& fs)
+        {
+            std::get<filter_size_ - 1>(fs).reset();
+        }
+    };
+
+    template<int Head, int... Tail>
+    void reset_all_filter_(const seq<Head, Tail...>&& dum)
+    {
+        resetter< val_helper<Head>, val_helper<Tail>... >{}(filter_tuple_);
+    };
+
 public:
-    JVFilterArray() : filter_tuple_(), caught_{{false}} 
+    JVFilterArray() : caught_{{false}}, filter_tuple_() 
     {
         static_assert(filter_size_ > 0, "parameter size must greater than 0");
     };
 
-    void operator()(const std::string& str) 
+    JVFilterArray(JVFilterArray&& fa) noexcept
+        : caught_(std::move(fa.caught_)), filter_tuple_(std::move(fa.filter_tuple_))
     {
-        filter_all_(str, seq_generator<filter_size_>());
+        fa.reset();
     };
 
+    /**
+     * @brief filter input string
+     * 
+     */
+    bool operator()(const std::string& str) noexcept(false)
+    {
+        return filter_all_(str, seq_generator<filter_size_>{});
+    };
+
+    /**
+     * @brief clean all filter
+     * 
+     */
     void reset() 
     {
-        for (auto a : caught_) a = false;
+        for (auto& a : caught_) a = false;
+        reset_all_filter_(seq_generator<filter_size_>{});
     };
 
     bool is_caught_all() const
@@ -173,6 +245,17 @@ public:
         return caught_[i];
     } 
     
+    int remaining() const 
+    {
+        int res = filter_size_;
+        
+        for (auto a : caught_) {
+            if (a) { -- res; }
+        }
+
+        return res;
+    }
+
     const std::tuple<Filters...>& get_filters() const 
     {
         return filter_tuple_;
