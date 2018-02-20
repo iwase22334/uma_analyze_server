@@ -7,6 +7,66 @@
 #include <cassert>
 #include "JVData_Structure.h"
 
+#include "impl/JVRecordReader.hpp"
+
+/**
+ * @brief 
+ * 
+ * @param id1 
+ * @param id2 
+ * @return true id is same
+ * @return false id is not same
+ */
+bool is_same_id(const _RACE_ID& id1, const _RACE_ID& id2){
+   return (std::memcmp(&(id1), &(id2), sizeof(_RACE_ID)) == 0 ? true : false); 
+}
+
+bool operator==(const _RACE_ID& a, const _RACE_ID& b) {
+    return std::memcmp(&a, &b, sizeof(_RACE_ID)) == 0 ? true : false;
+}
+
+/**
+ * @brief check id
+ * 
+ * @tparam T1 
+ * @tparam T2 
+ * @param a 
+ * @param b 
+ * @return true 
+ * @return false 
+ */
+template<class T1, class T2>
+auto is_same_id(const T1& a, const T2& b) -> decltype(a.id, b.id, bool())
+{
+    static_assert(std::is_same<decltype(a.id), _RACE_ID>::value, "invalid type");
+    static_assert(std::is_same<decltype(b.id), _RACE_ID>::value, "invalid type");
+    return (std::memcmp(&(a.id), &(b.id), sizeof(_RACE_ID)) == 0 ? true : false);
+};
+
+// class T1 or T2 has no member named id.
+template<class T1 = void, class T2 = void>
+auto is_same_id(...) -> bool
+{
+    static_assert(_false_value<T1>::val, "type has no member named id");
+    return false;
+};
+
+/**
+ * @brief Do Data in Filter array contain same id
+ * 
+ * @tparam Head 
+ * @tparam Tail 
+ * @param fa filter array
+ * @return true all data in filter array has same id
+ * @return false all data in filter array has not same id 
+ */
+template<class Head, class... Tail>
+bool is_valid(const JVFilterArray<Head, Tail...>& fa) 
+{
+    return _is_valid(fa, _seq_generator<1 + sizeof...(Tail)>{});
+};
+
+
 /**
  * @brief record value reader
  * 
@@ -55,25 +115,7 @@ private:
 
 public:
     static constexpr std::size_t filter_size = filter_size_;
-
-private:
-    /**
-     * @brief Metafunc for express generated sequense.
-     *  This struct will be made by seq_generator
-     * @tparam N 
-     */
-    template <int... N> struct seq {};
-
-    /**
-     * @brief Metafunc for generate seq
-     * 
-     * @tparam N 
-     * @tparam Ns 
-     */
-    template <int N, int... Ns>
-    struct seq_generator : seq_generator<N - 1, N - 1, Ns...> {};
-    template <int... Ns>
-    struct seq_generator<0, Ns...> : seq<Ns...> {};
+    using tuple_type = std::tuple<Filters...>;
 
 private:
     /**
@@ -96,18 +138,6 @@ private:
     {
         typedef type_finder<Index, Target, Target, Types...> type;
         static constexpr int index = Index;
-    };
-
-    /**
-     * @brief support struct for string fowarder
-     * 
-     * @tparam Ns 
-     */
-    template<int... Ns> struct pack {};
-
-    template<int N> struct val_helper
-    {
-        static constexpr int val = N;
     };
 
     /**
@@ -149,7 +179,9 @@ private:
             bool rval = std::get<filter_size_ - 1>(fs).read(str);
 
             if (rval) {
-                if(res[filter_size_ - 1]) throw std::runtime_error("Filter value overwrited.");; // filter value is replaced by new one
+                if(res[filter_size_ - 1]) 
+                    throw std::runtime_error("Filter value overwrited.");; // filter value is replaced by new one
+                
                 res[filter_size_ - 1] = true;
             }
 
@@ -165,7 +197,7 @@ private:
      * @param dummy 
      */
     template<int Head, int... Tail>
-    bool filter_all_(const std::string& str, const seq<Head, Tail...>&& dummy) noexcept(false)
+    bool filter_all_(const std::string& str, const _seq<Head, Tail...>& dummy) noexcept(false)
     {
         // filter all
         return string_fowarder<val_helper<Head>, val_helper<Tail>...>{}
@@ -196,7 +228,7 @@ private:
     };
 
     template<int Head, int... Tail>
-    void reset_all_filter_(const seq<Head, Tail...>&& dum)
+    void reset_all_filter_(const _seq<Head, Tail...>& dum)
     {
         resetter< val_helper<Head>, val_helper<Tail>... >{}(filter_tuple_);
     };
@@ -219,7 +251,7 @@ public:
      */
     bool operator()(const std::string& str) noexcept(false)
     {
-        return filter_all_(str, seq_generator<filter_size_>{});
+        return filter_all_(str, _seq_generator<filter_size_>{});
     };
 
     /**
@@ -229,7 +261,7 @@ public:
     void reset() 
     {
         for (auto& a : caught_) a = false;
-        reset_all_filter_(seq_generator<filter_size_>{});
+        reset_all_filter_(_seq_generator<filter_size_>{});
     };
 
     bool is_caught_all() const
@@ -244,7 +276,7 @@ public:
     {
         return caught_[i];
     } 
-    
+
     int remaining() const 
     {
         int res = filter_size_;

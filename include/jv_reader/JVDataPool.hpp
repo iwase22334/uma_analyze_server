@@ -63,6 +63,8 @@ namespace jv_data
     class JVDataPool
     {
     public:
+        using data_type = T;
+    public:
 
         enum struct FilterResult
         {
@@ -147,6 +149,9 @@ namespace jv_data
         this->filter_array_.reset();
         this->data_list_.clear();
     };
+
+    typedef JVDataPool<filter_array::race> race_pool;
+    typedef JVDataPool<filter_array::ming> ming_pool;
 
 };
 

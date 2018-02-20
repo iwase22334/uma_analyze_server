@@ -84,3 +84,192 @@ BOOST_AUTO_TEST_CASE(case2)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
+
+BOOST_AUTO_TEST_SUITE(jv_record_reader_is_same_id)
+
+BOOST_AUTO_TEST_CASE(case1)
+{
+    using id_type = _RACE_ID;
+    BOOST_CHECK(sizeof(id_type) == 16);
+}
+
+BOOST_AUTO_TEST_CASE(case2)
+{
+    using id_type = _RACE_ID;
+    id_type id = {
+        .Year = {0, 1, 2, 3},
+        .MonthDay = {4, 5, 6, 7},
+        .JyoCD = {8, 9},
+        .Kaiji = {10, 11},
+        .Nichiji = {12, 13},
+        .RaceNum = {14, 15}
+    };
+
+    struct a_type {
+        int hoge;
+        id_type id;
+    };
+
+    struct b_type {
+        id_type id;
+        double fuge;
+    };
+
+    struct invalid_type_for_is_same_id { id_type bad_name; };
+
+    a_type a;
+    b_type b;
+
+    // structure that not has a mamber named id is invalid argunemt
+    // invalid_type_for_is_same_id c; 
+    // BOOST_CHECK(is_same_id(a, c) == false); 
+
+    std::memcpy(&(a.id), &id, 16);
+    std::memcpy(&(b.id), &id, 16);
+    
+    const char comp1[]{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+    BOOST_CHECK(is_same_id(a, b));
+    BOOST_CHECK(std::memcmp(reinterpret_cast<const void*>(&a.id), &comp1, 16) == 0);
+
+    const char comp2[]{0,1,2,3,4,5,6,7,0,9,10,11,12,13,14,15};
+    b.id.JyoCD[0] = {0};
+    BOOST_CHECK(!is_same_id(a, b));
+    BOOST_CHECK(std::memcmp(reinterpret_cast<const void*>(&b.id), &comp2, 16) == 0);
+    a.id.JyoCD[0] = {0};
+    BOOST_CHECK(is_same_id(a, b));
+}
+
+BOOST_AUTO_TEST_CASE(case3)
+{
+    using id_type = _RACE_ID;
+    id_type id1 = {
+        .Year = {0, 1, 2, 3},
+        .MonthDay = {4, 5, 6, 7},
+        .JyoCD = {8, 9},
+        .Kaiji = {10, 11},
+        .Nichiji = {12, 13},
+        .RaceNum = {14, 15}
+    };
+
+    id_type id2 = {
+        .Year = {0, 1, 2, 3},
+        .MonthDay = {4, 5, 6, 7},
+        .JyoCD = {8, 9},
+        .Kaiji = {10, 11},
+        .Nichiji = {12, 13},
+        .RaceNum = {14, 15}
+    };
+
+    BOOST_CHECK(is_same_id(id1, id2));
+    BOOST_CHECK(id1 == id2);
+}
+
+BOOST_AUTO_TEST_CASE(case4)
+{
+    using id_type = _RACE_ID;
+    id_type id1 = {
+        .Year = {0, 1, 2, 3},
+        .MonthDay = {4, 5, 6, 7},
+        .JyoCD = {8, 9},
+        .Kaiji = {10, 11},
+        .Nichiji = {12, 13},
+        .RaceNum = {14, 15}
+    };
+
+    id_type id2 = {
+        .Year = {0, 0, 0, 0},
+        .MonthDay = {4, 5, 6, 7},
+        .JyoCD = {8, 9},
+        .Kaiji = {10, 11},
+        .Nichiji = {12, 13},
+        .RaceNum = {14, 15}
+    };
+
+    BOOST_CHECK(is_same_id(id1, id2) == false);
+    BOOST_CHECK((id1 == id2) == false);
+}
+
+BOOST_AUTO_TEST_SUITE_END()
+
+
+BOOST_AUTO_TEST_SUITE(jv_record_reader_is_valid)
+
+BOOST_AUTO_TEST_CASE(case1)
+{
+    using id_type = _RACE_ID;
+    
+    std::string id_data1("0123456789012345abcde");
+    std::string id_data2("0000000000000000abcde");
+
+    struct test_struct1{ 
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    struct test_struct2{
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    struct test_struct3{ 
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    typedef JVRecordFilter<test_struct1, 'A', 'B'> filter1;
+    typedef JVRecordFilter<test_struct2, 'C', 'D'> filter2;
+    typedef JVRecordFilter<test_struct3, 'E', 'F'> filter3;
+
+    JVFilterArray<filter1, filter2, filter3> filter_array;
+
+    // make data
+    BOOST_CHECK(filter_array(std::string("AB") + id_data1));
+    BOOST_CHECK(filter_array(std::string("CD") + id_data2));
+    BOOST_CHECK(filter_array(std::string("EF") + id_data1));
+
+    BOOST_CHECK(is_valid(filter_array) == false); 
+}
+
+BOOST_AUTO_TEST_CASE(case2)
+{
+    using id_type = _RACE_ID;
+    
+    std::string id_data1("0123456789012345abcde");
+    std::string id_data2("0000000000000000abcde");
+
+    struct test_struct1{ 
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    struct test_struct2{
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    struct test_struct3{ 
+        char sort[2];
+        id_type id;
+        char a[5];
+    };
+
+    typedef JVRecordFilter<test_struct1, 'A', 'B'> filter1;
+    typedef JVRecordFilter<test_struct2, 'C', 'D'> filter2;
+    typedef JVRecordFilter<test_struct3, 'E', 'F'> filter3;
+
+    JVFilterArray<filter1, filter2, filter3> filter_array;
+
+    // make data
+    BOOST_CHECK(filter_array(std::string("AB") + id_data1));
+    BOOST_CHECK(filter_array(std::string("CD") + id_data1));
+    BOOST_CHECK(filter_array(std::string("EF") + id_data1));
+
+    BOOST_CHECK(is_valid(filter_array));
+}
+
+BOOST_AUTO_TEST_SUITE_END()
