@@ -8,30 +8,30 @@
 #include <tuple>
 #include <utility>
 
-namespace jv_data
+namespace jvdata
 {
     namespace filter
     {
-        typedef JVRecordFilter<JV_RA_RACE,              'R', 'A'> ra_race;
-        typedef JVRecordFilter<JV_SE_RACE_UMA,          'S', 'E'> se_race_uma;
-        typedef JVRecordFilter<JV_HR_PAY,               'H', 'R'> hr_pay;
-        typedef JVRecordFilter<JV_H1_HYOSU_ZENKAKE,     'H', '1'> h1_hyosu_zenkake;
-        typedef JVRecordFilter<JV_H6_HYOSU_SANRENTAN,   'H', '6'> h6_hyosu_sanrentan;
-        typedef JVRecordFilter<JV_O1_ODDS_TANFUKUWAKU,  'O', '1'> o1_odds_tanfukuwaku;
-        typedef JVRecordFilter<JV_O2_ODDS_UMAREN,       'O', '2'> o2_odds_umaren;
-        typedef JVRecordFilter<JV_O3_ODDS_WIDE,         'O', '3'> o3_odds_wide;
-        typedef JVRecordFilter<JV_O4_ODDS_UMATAN,       'O', '4'> o4_odds_umatan;
-        typedef JVRecordFilter<JV_O5_ODDS_SANREN,       'O', '5'> o5_odds_sanren;
-        typedef JVRecordFilter<JV_O6_ODDS_SANRENTAN,    'O', '6'> o6_odds_sanrentan;
-        typedef JVRecordFilter<JV_WF_INFO,              'W', 'F'> wf_info;
-        typedef JVRecordFilter<JV_JG_JOGAIBA,           'J', 'G'> jg_jogaiba;
-        typedef JVRecordFilter<JV_DM_INFO,              'D', 'M'> dm_info;
-        typedef JVRecordFilter<JV_TM_INFO,              'T', 'M'> tm_info;
+        typedef JVRecordFilter <JV_RA_RACE,              'R', 'A', '7'> ra_race;
+        typedef JVRecordFilter <JV_SE_RACE_UMA,          'S', 'E', '7'> se_race_uma;
+        typedef JVRecordFilter <JV_HR_PAY,               'H', 'R', '2'> hr_pay;
+        typedef JVRecordFilter <JV_H1_HYOSU_ZENKAKE,     'H', '1', '5'> h1_hyosu_zenkake;
+        typedef JVRecordFilter <JV_H6_HYOSU_SANRENTAN,   'H', '6', '5'> h6_hyosu_sanrentan;
+        typedef JVRecordFilter <JV_O1_ODDS_TANFUKUWAKU,  'O', '1', '5'> o1_odds_tanfukuwaku;
+        typedef JVRecordFilter <JV_O2_ODDS_UMAREN,       'O', '2', '5'> o2_odds_umaren;
+        typedef JVRecordFilter <JV_O3_ODDS_WIDE,         'O', '3', '5'> o3_odds_wide;
+        typedef JVRecordFilter <JV_O4_ODDS_UMATAN,       'O', '4', '5'> o4_odds_umatan;
+        typedef JVRecordFilter <JV_O5_ODDS_SANREN,       'O', '5', '5'> o5_odds_sanren;
+        typedef JVRecordFilter <JV_O6_ODDS_SANRENTAN,    'O', '6', '5'> o6_odds_sanrentan;
+        typedef JVRecordFilter <JV_WF_INFO,              'W', 'F', '7'> wf_info;
+        typedef JVRecordFilter <JV_JG_JOGAIBA,           'J', 'G', '1'> jg_jogaiba;
+        typedef JVRecordFilter <JV_DM_INFO,              'D', 'M', '3'> dm_info;
+        typedef JVRecordFilter <JV_TM_INFO,              'T', 'M', '3'> tm_info;
     };
     
     namespace filter_array
     {
-        using namespace jv_data::filter;
+        using namespace jvdata::filter;
 
         /**
          * @brief filter array for data sort at "RACE"
@@ -101,6 +101,12 @@ namespace jv_data
         std::size_t get_data_size() const { return data_list_.size(); };
 
         /**
+         * @brief charge_
+         * 
+         */
+        void next();
+
+        /**
          * @brief initialize
          * 
          */
@@ -118,22 +124,7 @@ namespace jv_data
     template<class T>
     typename JVDataPool<T>::FilterResult JVDataPool<T>::operator()(const std::string& str)
     {
-
-        if (filter_array_(str)) {
-            
-            // if Filter is filled by data
-            if (filter_array_.is_caught_all()) {
-                this->charge(std::move(filter_array_));
-                return JVDataPool<T>::FilterResult::E_Complete;
-            }
-
-            // filter caught string
-            else {
-                return JVDataPool<T>::FilterResult::E_Caught;
-            }
-
-        }
-
+        if (filter_array_(str)) return JVDataPool<T>::FilterResult::E_Caught; 
         return JVDataPool<T>::FilterResult::E_Pass;
     };
 
@@ -141,6 +132,12 @@ namespace jv_data
     const std::list<T>& JVDataPool<T>::get_data_list() const
     {
         return this->data_list_;
+    };
+
+    template<class T>
+    void JVDataPool<T>::next()
+    {
+        this->charge(std::move(filter_array_));
     };
 
     template<class T>

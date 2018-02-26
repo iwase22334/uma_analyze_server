@@ -1,7 +1,7 @@
 #ifndef IMPL_JV_RECORD_READER_HPP
 #define IMPL_JV_RECORD_READER_HPP
 
-template<typename T, char C1, char C2> struct JVRecordFilter;
+template<typename T, char C1, char C2, char C3> struct JVRecordFilter;
 template<class... Filters> class JVFilterArray;
 
 /**
@@ -45,6 +45,11 @@ struct _Validator {
     bool operator()(const _RACE_ID& id, const Tuple& filters, const Head& h, const Tail&... tail) 
     {
         bool res = !std::memcmp(&(std::get<Head::val>(filters).result_ptr->id), &id, sizeof(_RACE_ID));
+        
+        for(const auto& fal : std::get<Head::val>(filters).fallen_list) {
+            res &= !std::memcmp(&(fal->id), &id, sizeof(_RACE_ID));
+        }
+
         return res & (*this)(id, filters, tail...);
     };
 

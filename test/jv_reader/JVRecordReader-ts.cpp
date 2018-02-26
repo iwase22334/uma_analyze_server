@@ -11,8 +11,9 @@ BOOST_AUTO_TEST_CASE(case1)
     struct test_struct{ 
         char a[5];
     };
-    typedef JVRecordFilter<test_struct, 'A', 'B'> filter1;
-    JVFilterArray<filter1> filter_array;
+
+    typedef jvdata::JVRecordFilter<test_struct, 'A', 'B', 'C'> filter1;
+    jvdata::JVFilterArray<filter1> filter_array;
     filter_array(std::string("ABCDE"));
     BOOST_CHECK_EQUAL(filter_array.is_caught_all(), true);
 }
@@ -31,11 +32,11 @@ BOOST_AUTO_TEST_CASE(case2)
         char a[11];
     };
 
-    typedef JVRecordFilter<test_struct1, 'A', 'B'> filter1;
-    typedef JVRecordFilter<test_struct2, 'C', 'D'> filter2;
-    typedef JVRecordFilter<test_struct3, 'E', 'D'> filter3;
+    using filter1 = jvdata::JVRecordFilter<test_struct1, 'A', 'B', 'C'>;
+    using filter2 = jvdata::JVRecordFilter<test_struct2, 'C', 'D', 'E'>;
+    using filter3 = jvdata::JVRecordFilter<test_struct3, 'E', 'D', 'E'>;
 
-    JVFilterArray<filter1, filter2, filter3> filter_array;
+    jvdata::JVFilterArray<filter1, filter2, filter3> filter_array;
 
     // first filtering
     BOOST_CHECK_EQUAL(filter_array(std::string("ABCDE")), true);
@@ -73,14 +74,14 @@ BOOST_AUTO_TEST_CASE(case2)
     BOOST_CHECK_EQUAL(filter_array.is_caught(1), true);
     BOOST_CHECK_EQUAL(filter_array.is_caught(2), false);
 
-    JVFilterArray<filter1, filter2, filter3> filter_array2(std::move(filter_array));
+    jvdata::JVFilterArray<filter1, filter2, filter3> filter_array2(std::move(filter_array));
 
     BOOST_CHECK_EQUAL(filter_array2.is_caught_all(), false); 
 
     // death test
-    BOOST_REQUIRE_THROW(filter_array2(std::string("CDEFGHIJKL")),
-                        std::runtime_error);
-
+    BOOST_CHECK_EQUAL(filter_array2(std::string("CDEFGHIJKL")), true);
+    BOOST_CHECK_EQUAL(filter_array2.get<filter2>().fallen_list.size(), 1);
+    
 }
 
 BOOST_AUTO_TEST_SUITE_END()
@@ -95,6 +96,7 @@ BOOST_AUTO_TEST_CASE(case1)
 
 BOOST_AUTO_TEST_CASE(case2)
 {
+    using jvdata::is_same_id;
     using id_type = _RACE_ID;
     id_type id = {
         .Year = {0, 1, 2, 3},
@@ -141,6 +143,7 @@ BOOST_AUTO_TEST_CASE(case2)
 
 BOOST_AUTO_TEST_CASE(case3)
 {
+    using jvdata::is_same_id;
     using id_type = _RACE_ID;
     id_type id1 = {
         .Year = {0, 1, 2, 3},
@@ -166,6 +169,7 @@ BOOST_AUTO_TEST_CASE(case3)
 
 BOOST_AUTO_TEST_CASE(case4)
 {
+    using jvdata::is_same_id;
     using id_type = _RACE_ID;
     id_type id1 = {
         .Year = {0, 1, 2, 3},
@@ -196,6 +200,7 @@ BOOST_AUTO_TEST_SUITE(jv_record_reader_is_valid)
 
 BOOST_AUTO_TEST_CASE(case1)
 {
+    using jvdata::is_valid;
     using id_type = _RACE_ID;
     
     std::string id_data1("0123456789012345abcde");
@@ -219,11 +224,11 @@ BOOST_AUTO_TEST_CASE(case1)
         char a[5];
     };
 
-    typedef JVRecordFilter<test_struct1, 'A', 'B'> filter1;
-    typedef JVRecordFilter<test_struct2, 'C', 'D'> filter2;
-    typedef JVRecordFilter<test_struct3, 'E', 'F'> filter3;
+    using filter1 = jvdata::JVRecordFilter<test_struct1, 'A', 'B', '0'>;
+    using filter2 = jvdata::JVRecordFilter<test_struct2, 'C', 'D', '0'>;
+    using filter3 = jvdata::JVRecordFilter<test_struct3, 'E', 'F', '0'>;
 
-    JVFilterArray<filter1, filter2, filter3> filter_array;
+    jvdata::JVFilterArray<filter1, filter2, filter3> filter_array;
 
     // make data
     BOOST_CHECK(filter_array(std::string("AB") + id_data1));
@@ -235,6 +240,7 @@ BOOST_AUTO_TEST_CASE(case1)
 
 BOOST_AUTO_TEST_CASE(case2)
 {
+    using jvdata::is_valid;
     using id_type = _RACE_ID;
     
     std::string id_data1("0123456789012345abcde");
@@ -258,11 +264,11 @@ BOOST_AUTO_TEST_CASE(case2)
         char a[5];
     };
 
-    typedef JVRecordFilter<test_struct1, 'A', 'B'> filter1;
-    typedef JVRecordFilter<test_struct2, 'C', 'D'> filter2;
-    typedef JVRecordFilter<test_struct3, 'E', 'F'> filter3;
+    using filter1 = jvdata::JVRecordFilter<test_struct1, 'A', 'B', '0'>;
+    using filter2 = jvdata::JVRecordFilter<test_struct2, 'C', 'D', '0'>;
+    using filter3 = jvdata::JVRecordFilter<test_struct3, 'E', 'F', '0'>;
 
-    JVFilterArray<filter1, filter2, filter3> filter_array;
+    jvdata::JVFilterArray<filter1, filter2, filter3> filter_array;
 
     // make data
     BOOST_CHECK(filter_array(std::string("AB") + id_data1));
