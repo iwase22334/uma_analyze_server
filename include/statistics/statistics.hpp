@@ -3,20 +3,27 @@
 #include <list>
 #include <cmath>
 
-namespace sta{
+namespace statistics{
 
 	/**
 	 * @brief Kernel for KerDensityEstimation
 	 * 
 	 * @tparam T 
 	 */
-	template<class T>
+	template<class T, class F_Type = std::false_type>
 	struct EpanechnikovKernel
 	{
-		double operator()(const T& x)
+		
+		auto operator()(const T& x) -> decltype(norm(x), double())
 		{
 			return 1.0 / sqrt(2 * M_PI) * exp(- norm(x) * norm(x) / 2 );
 		};
+
+		auto operator()(...) -> double
+		{
+			static_assert(F_Type, "Not defined norm function");
+		};
+
 	};
 
 	/**
@@ -42,11 +49,16 @@ namespace sta{
 	template<class I, class T_Kernel>
 	struct KDensityEstimator
 	{
-		double operator()(const double h, const I x, const std::list<I>& sample)
+		double operator()(const double h, const I& x, const std::list<I>& sample)
 		{
 			double sum = 0;
-			for_each(sample.begin(), sample.end(), [&](const I& xi){ sum += T_Kernel()( (x - xi) / h ); });
+			for_each(sample.begin(), sample.end(), [&](const I& xi){ sum += T_Kernel{}( (x - xi) / h ); });
 			return sum / (sample.size() * h);
+		};
+
+		double operator()(const double h, const I& x, const I& xi) 
+		{
+			return T_Kernel{}( (x - xi) / h );
 		};
 	};
 };
