@@ -1,5 +1,14 @@
+/**
+ * @brief 
+ * 
+ * @file JVDataHandling.hpp
+ * @author hajime iwase
+ * @date 2018-03-14
+ */
 #ifndef JV_DATA_HANDLING_HPP
 #define JV_DATA_HANDLING_HPP
+
+#include <cassert>
 
 namespace {
 
@@ -37,7 +46,7 @@ namespace jvdata {
     std::string to_string(const id_type& id)
     {
         char c[RACE_ID_LENGTH];
-        std::memcpy(c, id, RACE_ID_LENGTH);
+        std::memcpy(c, &id, RACE_ID_LENGTH);
         return std::string(c, RACE_ID_LENGTH);
     }
 
@@ -66,19 +75,19 @@ namespace jvdata {
 
         const std::string s_Year(id.Year, 4);
         const std::string s_MonthDay(id.MonthDay, 4);
-        const std::string s_JyoCD(id.JyoCD, 2);
+        //const std::string s_JyoCD(id.JyoCD, 2);
         const std::string s_Kaiji(id.Kaiji, 2);
         const std::string s_Nichiji(id.Nichiji, 2);
-        const std::string s_RaceNum(id.RaceNum, 2);
+        //const std::string s_RaceNum(id.RaceNum, 2);
 
         const int i_Year = std::stoi(s_Year);
         const int i_MonthDay = std::stoi(s_MonthDay);
         const int i_Month = i_MonthDay / 100;
         const int i_Day = i_MonthDay - i_Month;
-        const int i_JyoCD = std::stoi(s_JyoCD);
+        //const int i_JyoCD = std::stoi(s_JyoCD);
         const int i_Kaiji = std::stoi(s_Kaiji);
         const int i_Nichiji = std::stoi(s_Nichiji);
-        const int i_RaceNum = std::stoi(s_RaceNum);
+        //const int i_RaceNum = std::stoi(s_RaceNum);
         
         if(i_Year < 1990 || i_Year > 2020)  return false;
         if(i_Month == 0 || i_Month > 12)    return false;
@@ -103,9 +112,15 @@ namespace jvdata {
     }
 
     static inline
+    int get_syusso_num(const jvdata::filter::ra_race& f_ra_race)
+    {
+        return get_syusso_num(*(f_ra_race.result_ptr));
+    }
+
+    static inline
     int get_kakutei_jyuni(int uma_ban_target, const jvdata::filter::se_race_uma& se_race_uma) 
     {  
-        std::assert(uma_ban_target >= 0);
+        assert(uma_ban_target >= 0);
 
         if(to_integer(se_race_uma.result_ptr->Umaban) == uma_ban_target){
             return to_integer(se_race_uma.result_ptr->KakuteiJyuni);
@@ -124,7 +139,7 @@ namespace jvdata {
     static inline
     int get_ming_point(int uma_ban_target, const jvdata::filter::tm_info& tm_info)
     {
-        std::assert(uma_ban_target >= 0);
+        assert(uma_ban_target >= 0);
 
         for (const auto& a : tm_info.result_ptr->TMInfo) {
             if (to_integer(a.Umaban) == uma_ban_target) {

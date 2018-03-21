@@ -21,7 +21,7 @@ namespace statistics{
 
 		auto operator()(...) -> double
 		{
-			static_assert(F_Type, "Not defined norm function");
+			static_assert(F_Type::value, "Not defined norm function");
 		};
 
 	};

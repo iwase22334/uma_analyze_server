@@ -11,7 +11,7 @@
 
 namespace jvdata {
 
-    #include "impl/JVRecordReader.hpp"
+    #include "impl/JVRecordReader.ipp"
 
     /**
      * @brief 
@@ -54,6 +54,8 @@ namespace jvdata {
 
     /**
      * @brief Do Data in Filter array contain same id
+     * @todo This function does not work
+     *  because of the class that is not have the member named id.
      * 
      * @tparam Head 
      * @tparam Tail 

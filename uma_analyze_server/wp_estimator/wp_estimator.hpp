@@ -1,11 +1,21 @@
+/**
+ * @brief 
+ * 
+ * @file wp_estimator.hpp
+ * @author hajime iwase 
+ * @date 2018-03-14
+ */
 #ifndef WP_ESTIMATOR_HPP
 #define WP_ESTIMATOR_HPP
 
-#include <jv_reader/JVDataPool.hpp>
-#include <jv_reader/JVDataHandling.hpp>
-
 #include <list>
 #include <vector>
+#include <array>
+#include <cassert>
+#include <random>
+
+#include <jv_reader/JVDataPool.hpp>
+#include <jv_reader/JVDataHandling.hpp>
 
 namespace wp_estimator
 {
@@ -18,7 +28,7 @@ namespace wp_estimator
          */
         struct RaceInfo {
             private:
-                constexpr std::size_t id_size_ = jvdata::RACE_ID_LENGTH;
+                static constexpr std::size_t id_size_ = jvdata::RACE_ID_LENGTH;
 
             public:
                 std::array<char, id_size_> id;
@@ -27,16 +37,16 @@ namespace wp_estimator
 
             public:
                 RaceInfo() =delete;
-                RaceInfo(int size) : id{0}, result(size), ming_point(size) {};
-                RaceInfo(int size, const id_type& iid) : result(size), ming_point(size) 
+                RaceInfo(int size) : id{{0}}, result(size), ming_point(size) {};
+                RaceInfo(int size, const jvdata::id_type& iid) : result(size), ming_point(size) 
                 { 
-                    assert(sizeof(id_type) == id_size_);
+                    assert(sizeof(jvdata::id_type) == id_size_);
                     char c[id_size_];
-                    std::memcpy(c, iid, id_size_);
-                    std::copy_n(c, id_size, id);
+                    std::memcpy(c, &iid, id_size_);
+                    std::copy(std::begin(c), std::end(c), id.begin());
                 };
                 RaceInfo( RaceInfo && ri ) noexcept : 
-                            id(std::move(ri.id))
+                            id(std::move(ri.id)),
                             result(std::move(ri.result)), 
                             ming_point(std::move(ri.ming_point))
                 {};
@@ -46,7 +56,7 @@ namespace wp_estimator
         RaceInfo extruct_race_info(const jvdata::filter_array::race& r, const jvdata::filter_array::ming& m);
 
         class WinProbabilityDistribution {
-            using wp_estimator::ming_point::RaceInfo;
+            using RaceInfo = wp_estimator::ming_point::RaceInfo;
 
         public:
             using win_pair_t = std::pair<int, int>;
@@ -77,53 +87,11 @@ namespace wp_estimator
     
         class Simulator {
         private:
-            class RealRandGenerator {
-            public:
-                constexpr double def_min_value = 0.0;
-                constexpr double def_max_value = 1.0;
-
-            private:
-                std::mt19937 mt_rand_;
-                std::uniform_real_distribution<double> urd_;
-            
-            public:
-                RealRandGenerator() : 
-                    mt_rand_(std::random_device{}()),
-                    urd_(def_min_value, def_max_value) {};                
-                
-                double operator()() { return urd_(mt_rand_); };
-
-            };
-
-            class IntRandGenerator {
-            public:
-                constexpr int def_min_value = 0;
-                constexpr int def_max_value = 1;
-
-            private:
-                std::mt19937 mt_rand_;
-                std::uniform_int_distribution<int> uid_;
-            
-            public:
-                IntRandGenerator() : 
-                    mt_rand_(std::random_device{}()),
-                    uid_(def_min_value, def_max_value) {};                
-
-                double operator()(int min, int max) 
-                {
-                    uid_.a = min; uid_.b = max;
-                    return uid_(mt_rand_); 
-                };
-
-            };
-
-        private:
-            RealRandGenerator real_rand_;
-            IntRandGenerator int_rand_;
+            mutable std::mt19937 mt_rand_;
         
         private:
-            constexpr int replsce_try_default_ = 100;
-            constexpr int restart_try_default_ = 200000;
+            static constexpr int replace_try_default_ = 100;
+            static constexpr int restart_try_default_ = 200000;
 
         private:
             std::size_t horse_num_;
@@ -135,12 +103,11 @@ namespace wp_estimator
 
         public:
             Simulator() = delete;
-            Simulator(std::size_t n) : 
+            Simulator(std::size_t n) :
+                mt_rand_(std::random_device{}()), 
                 horse_num_(n), 
                 replace_try_num_(replace_try_default_), 
-                restart_try_num(restart_try_default_),
-                real_rand_(),
-                int_rand_() {};
+                restart_try_num_(restart_try_default_){};
 
             std::vector<win_prob_list_t> operator()( const WinProbabilityDistribution& wp_dist,
                                                      const RaceInfo& r_info);
@@ -151,6 +118,16 @@ namespace wp_estimator
             void set_restart_try_num(unsigned int a) { restart_try_num_ = a; };
         
         private:
+            int uniform_int_rand(int min, int max) const
+            {
+                return std::uniform_int_distribution<int>{min, max}(mt_rand_);
+            }
+
+            double uniform_double_rand(double min, double max) const
+            {
+                return std::uniform_real_distribution<double>{min, max}(mt_rand_);   
+            }
+
             std::vector<int> random_start() const
             {
                 std::vector<int> initial_rank(horse_num_, 0);
@@ -162,42 +139,42 @@ namespace wp_estimator
                             -- rem;
                         }
                     }
-                    std::assert(false);
+                    assert(false);
                     return 0;
                 };
 
                 for (std::size_t i = 0; i < horse_num_; ++ i) {
-                   int r = int_rand_(0, horse_num_ - i - 1);
+                   int r = uniform_int_rand(0, horse_num_ - i - 1);
                    initial_rank[find_empty(r)] = i + 1;
                 }
 
                 return initial_rank;
             };
 
-            bool compete(double a) const { return rand_() < a ? true : false; };
+            bool compete(double a) const { return uniform_double_rand(0.0, 1.0) < a ? true : false; };
 
             std::pair<int, int> random_pair() 
             { 
                 std::pair<int, int> p;
 
-                p.first = p.second = int_rand_(0, horse_num_ - 1);
-                while(p.first == p.second) p.second = int_rand_();
+                p.first = p.second = uniform_int_rand(0, horse_num_ - 1);
+                while(p.first == p.second) p.second = uniform_int_rand(0, horse_num_ - 1);
 
                 return p;
             };
 
-            double pickup_from_table(const std::vector<int>& table, const std::pair<int, int> p) const 
+            double pickup_from_table(const std::vector<double>& table, const std::pair<int, int> p) const 
             {
-                std::assert(table.size() == horse_num_ * horse_num_);
-                std::assert(p.first != p.second);
+                assert(table.size() == horse_num_ * horse_num_);
+                assert(p.first != p.second);
 
                 return table[p.first + p.second * horse_num_];
             }
 
             void swap(std::vector<int>& rank, std::pair<int, int> target) const 
             { 
-                std::assert(rank.size() == horse_num_);
-                std::assert(p.first != p.second);
+                assert(rank.size() == horse_num_);
+                assert(target.first != target.second);
 
                 int tmp = rank[target.first];
                 rank[target.first] = rank[target.second];

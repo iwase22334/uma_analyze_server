@@ -1,5 +1,5 @@
-#ifndef IMPL_JV_RECORD_READER_HPP
-#define IMPL_JV_RECORD_READER_HPP
+#ifndef IMPL_JV_RECORD_READER_IPP
+#define IMPL_JV_RECORD_READER_IPP
 
 template<typename T, char C1, char C2, char C3> struct JVRecordFilter;
 template<class... Filters> class JVFilterArray;
