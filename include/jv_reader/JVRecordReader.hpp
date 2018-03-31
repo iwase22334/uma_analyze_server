@@ -5,6 +5,7 @@
 #include <memory>
 #include <tuple>
 #include <list>
+#include <array>
 #include <cassert>
 
 #include "JVData_Structure.h"
@@ -158,7 +159,6 @@ namespace jvdata {
         /**
          * @brief Metafunc for fowarding string to next filter
          * 
-         * @tparam T 
          * @tparam Head 
          * @tparam Tail 
          */
@@ -183,12 +183,12 @@ namespace jvdata {
             };
         };
 
-        template <class... Tail>
-        struct string_fowarder< val_helper<filter_size_ - 1>, Tail...>
+        template <>
+        struct string_fowarder< val_helper<filter_size_ - 1> >
         {
             bool operator()(std::array<bool, filter_size_>& res,
                             std::tuple<Filters...>& fs,
-                            const std::string& str)
+                            const std::string& str) noexcept(false)
             {
                 bool rval = std::get<filter_size_ - 1>(fs).read(str);
 
@@ -229,8 +229,8 @@ namespace jvdata {
             }
         };
 
-        template<class... Tail>
-        struct resetter< val_helper<filter_size_ - 1>, Tail... >
+        template<>
+        struct resetter< val_helper<filter_size_ - 1> >
         {
             void operator()(std::tuple<Filters...>& fs)
             {

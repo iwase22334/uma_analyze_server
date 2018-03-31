@@ -8,7 +8,12 @@
 #ifndef JV_DATA_HANDLING_HPP
 #define JV_DATA_HANDLING_HPP
 
+#include <iostream>
 #include <cassert>
+
+#include "JVData_Structure.h"
+#include "JVRecordReader.hpp"
+#include "JVDataPool.hpp"
 
 namespace {
 
@@ -112,7 +117,7 @@ namespace jvdata {
     }
 
     static inline
-    int get_syusso_num(const jvdata::filter::ra_race& f_ra_race)
+    int get_syusso_num(const filter::ra_race& f_ra_race)
     {
         return get_syusso_num(*(f_ra_race.result_ptr));
     }
