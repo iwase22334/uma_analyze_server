@@ -1,3 +1,4 @@
-/Debug
-/uma_analyze_server/Debug
-/build/*
+Debug
+build
+.vs
+uma_analyze_server.vcxproj.user
