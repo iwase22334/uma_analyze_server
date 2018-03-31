@@ -50,8 +50,8 @@ namespace {
     {
         std::list< std::pair<int, int> > pair_list;
         
-        for (int i = 0; i < ri.result.size() - 1; ++ i) {
-            for (int j = i + 1; j < ri.result.size(); ++ j) {
+        for (std::size_t i = 0; i < ri.result.size() - 1; ++ i) {
+            for (std::size_t j = i + 1; j < ri.result.size(); ++ j) {
                 if (comp_func(ri.result[i], ri.result[j])) {
                     pair_list.push_back(std::pair<int, int>(ri.ming_point[i], ri.ming_point[j]));
                 }
