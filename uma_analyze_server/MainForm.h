@@ -1,5 +1,5 @@
 #pragma once
-#include <thread>
+
 namespace umaanalyzeserver {
 
 	using namespace System;
@@ -18,7 +18,7 @@ namespace umaanalyzeserver {
 		MainForm(void)
 		{
 			InitializeComponent();
-			
+
 			//
 			//TODO: ここにコンストラクター コードを追加します
 			//
@@ -100,6 +100,7 @@ namespace umaanalyzeserver {
 			this->text_box->Location = System::Drawing::Point(12, 33);
 			this->text_box->Multiline = true;
 			this->text_box->Name = L"text_box";
+			this->text_box->ReadOnly = true;
 			this->text_box->Size = System::Drawing::Size(588, 245);
 			this->text_box->TabIndex = 2;
 			// 
@@ -159,11 +160,39 @@ namespace umaanalyzeserver {
 
 		}
 #pragma endregion
+	private:
+		void print_text(String^ str) 
+		{
+			this->text_box->AppendText(str);
+		}
+
+		template<int N>
+		void print_text(const char(&str)[N]) 
+		{
+			this->text_box->AppendText(str);
+		}
+
 	private: System::Void setting_button_click(System::Object^  sender, System::EventArgs^  e) {
 		this->jv_link->JVSetUIProperties();
 	}
 	private: System::Void start_button_click(System::Object^  sender, System::EventArgs^  e) {
+		String^ start_year = this->from_picker->Value.Year.ToString();
+		String^ start_month = this->from_picker->Value.Month.ToString();
+		String^ start_day = this->from_picker->Value.Day.ToString();
 		
+		String^ stop_year = this->to_picker->Value.Year.ToString();
+		String^ stop_month = this->to_picker->Value.Month.ToString();
+		String^ stop_day = this->to_picker->Value.Day.ToString();
+
+		print_text("analyze start\n");
+		
+		print_text("start :");
+		print_text(start_year + start_month + start_day);
+		print_text("\n");
+		print_text("stop  :");
+		print_text(stop_year + stop_month + stop_day);
+		print_text("\n");
 	}
+
 };
 }

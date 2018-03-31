@@ -90,6 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies />
@@ -133,27 +134,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="analyzer\DataStructure.cpp" />
-    <ClCompile Include="analyzer\FileReader.cpp" />
-    <ClCompile Include="analyzer\UmaDataAnalyzer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
-    <ClCompile Include="simulator\simulator.cpp" />
+    <ClCompile Include="wp_estimator\wp_estimator.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="analyzer\DataStructure.hpp" />
-    <ClInclude Include="analyzer\FileReader.hpp" />
-    <ClInclude Include="analyzer\statistics.hpp" />
-    <ClInclude Include="analyzer\StringManipulator.hpp" />
-    <ClInclude Include="analyzer\UmaDataAnalyzer.hpp" />
-    <ClInclude Include="linear\linear.hpp" />
-    <ClInclude Include="linear\matrix.hpp" />
-    <ClInclude Include="linear\RotateMatrix.hpp" />
-    <ClInclude Include="linear\vector.hpp" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>
-    <ClInclude Include="simulator\simulator.hpp" />
+    <ClInclude Include="wp_estimator\wp_estimator.hpp" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="JVDTLabLib.1.18.dll">
@@ -176,6 +165,7 @@
   <ItemGroup>
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.h</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

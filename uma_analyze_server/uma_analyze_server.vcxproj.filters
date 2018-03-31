@@ -13,15 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="ソース ファイル\simulator">
-      <UniqueIdentifier>{62830310-81d6-44af-afbe-6aee5fc69ba9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\linear">
-      <UniqueIdentifier>{cff580e5-b6c2-4f9c-ac82-a7b26890e9bd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ソース ファイル\analyzer">
-      <UniqueIdentifier>{4c512fd5-bb88-45ad-bdb2-7e63d57601a5}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainForm.cpp">
@@ -30,52 +21,16 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="simulator\simulator.cpp">
-      <Filter>ソース ファイル\simulator</Filter>
-    </ClCompile>
-    <ClCompile Include="analyzer\DataStructure.cpp">
+    <ClCompile Include="wp_estimator\wp_estimator.cpp">
       <Filter>ソース ファイル</Filter>
-    </ClCompile>
-    <ClCompile Include="analyzer\UmaDataAnalyzer.cpp">
-      <Filter>ソース ファイル\analyzer</Filter>
-    </ClCompile>
-    <ClCompile Include="analyzer\FileReader.cpp">
-      <Filter>ソース ファイル\analyzer</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="MainForm.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
-    <ClInclude Include="simulator\simulator.hpp">
-      <Filter>ソース ファイル\simulator</Filter>
-    </ClInclude>
-    <ClInclude Include="analyzer\DataStructure.hpp">
-      <Filter>ソース ファイル</Filter>
-    </ClInclude>
-    <ClInclude Include="linear\linear.hpp">
-      <Filter>ソース ファイル\linear</Filter>
-    </ClInclude>
-    <ClInclude Include="linear\matrix.hpp">
-      <Filter>ソース ファイル\linear</Filter>
-    </ClInclude>
-    <ClInclude Include="linear\RotateMatrix.hpp">
-      <Filter>ソース ファイル\linear</Filter>
-    </ClInclude>
-    <ClInclude Include="linear\vector.hpp">
-      <Filter>ソース ファイル\linear</Filter>
-    </ClInclude>
-    <ClInclude Include="analyzer\UmaDataAnalyzer.hpp">
-      <Filter>ソース ファイル\analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="analyzer\StringManipulator.hpp">
-      <Filter>ソース ファイル\analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="analyzer\statistics.hpp">
-      <Filter>ソース ファイル\analyzer</Filter>
-    </ClInclude>
-    <ClInclude Include="analyzer\FileReader.hpp">
-      <Filter>ソース ファイル\analyzer</Filter>
+    <ClInclude Include="wp_estimator\wp_estimator.hpp">
+      <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
