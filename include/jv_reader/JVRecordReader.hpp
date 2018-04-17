@@ -1,5 +1,8 @@
 #ifndef JV_RECORD_READER_HPP
 #define JV_RECORD_READER_HPP
+#include <jv_reader/JVDataConstants.hpp>
+
+#include <boost/optional.hpp>
 
 #include <string>
 #include <memory>
@@ -8,7 +11,7 @@
 #include <array>
 #include <cassert>
 
-#include "JVData_Structure.h"
+
 
 namespace jvdata {
 
@@ -49,7 +52,7 @@ namespace jvdata {
     template<class T1 = void, class T2 = void>
     auto is_same_id(...) -> bool
     {
-        static_assert(_false_value<T1>::val, "type has no member named id");
+        static_assert(std::false_type::value, "type has no member named id");
         return false;
     };
 
@@ -83,41 +86,43 @@ namespace jvdata {
         using result_type = T;
 
     public:
-        bool caught;
-        std::unique_ptr<T> result_ptr;
         std::list< std::unique_ptr<T> > fallen_list;
 
     public:
-        JVRecordFilter() : caught(false), result_ptr(nullptr), fallen_list() {};
+        JVRecordFilter() : fallen_list() {};
+		
+		JVRecordFilter(const JVRecordFilter&) = delete;
+
         JVRecordFilter(JVRecordFilter&& rf) noexcept
-            : caught(std::move(rf.caught)),
-            result_ptr(std::move(rf.result_ptr)), 
-            fallen_list(std::move(rf.fallen_list)) 
+            : fallen_list(std::move(rf.fallen_list)) 
         {
             rf.reset();
         };
 
-        bool read(const std::string str) {
+        auto read(const std::string str) -> boost::optional<const id_type&>
+		{
 
             if (str.c_str()[0] != C1 || str.c_str()[1] != C2 || str.c_str()[2] != C3) { 
-                return false;
+                return boost::none;
             }
             
             assert(sizeof(T) == str.size());
-            // if filter already has data, data will fall to list
-            if(result_ptr) fallen_list.push_back(std::move(result_ptr));
 
             // catch inputed data
-            result_ptr.reset(new T());
-            std::memcpy(result_ptr.get(), str.c_str(), sizeof(T));
+			std::unique_ptr<T> tp(new T());
+            std::memcpy(tp.get(), str.c_str(), sizeof(T));
+            fallen_list.push_back(std::move(tp));
 
-            return (caught = true);
-
+			return fallen_list.back()->id;
         };
 
-        void reset() { 
-            caught = false;
-            result_ptr.reset(nullptr);
+		const std::list< std::unique_ptr<T> >& get() const 
+		{ 
+			return fallen_list;  
+		};
+
+        void reset() 
+		{ 
             fallen_list.clear();
         };
     };
@@ -165,38 +170,38 @@ namespace jvdata {
         template<class Head, class... Tail>
         struct string_fowarder
         {
-            bool operator()(std::array<bool, filter_size_>& res,
+            auto operator()(std::array<bool, filter_size_>& res,
                             std::tuple<Filters...>& fs,
-                            const std::string& str) noexcept(false)
+                            const std::string& str) noexcept(false) 
+				-> boost::optional<const id_type&>
             {
-                bool rval = false;
+				boost::optional<const id_type&> ret;
 
-                if (!std::get<Head::val>(fs).read(str))
-                    rval |= string_fowarder<Tail...>{}(res, fs, str);
-
-                else {
+                if (!(ret = std::get<Head::val>(fs).read(str)))
+                    ret = string_fowarder<Tail...>{}(res, fs, str);
+					
+                else 
                     res[Head::val] = true;
-                    rval = true;
-                }
 
-                return rval;
+                return ret;
             };
         };
 
         template <>
         struct string_fowarder< val_helper<filter_size_ - 1> >
         {
-            bool operator()(std::array<bool, filter_size_>& res,
+            auto operator()(std::array<bool, filter_size_>& res,
                             std::tuple<Filters...>& fs,
                             const std::string& str) noexcept(false)
+				-> boost::optional<const id_type&> 
             {
-                bool rval = std::get<filter_size_ - 1>(fs).read(str);
+                boost::optional<const id_type&> ret = std::get<filter_size_ - 1>(fs).read(str);
 
-                if (rval) {
+                if (ret) {
                     res[filter_size_ - 1] = true;
                 }
 
-                return rval; 
+                return ret; 
             };
         };
 
@@ -208,7 +213,8 @@ namespace jvdata {
          * @param dummy 
          */
         template<int Head, int... Tail>
-        bool filter_all_(const std::string& str, const _seq<Head, Tail...>& dummy) noexcept(false)
+        auto filter_all_(const std::string& str, const _seq<Head, Tail...>& dummy) noexcept(false)
+			-> boost::optional<const id_type&> 
         {
             // filter all
             return string_fowarder<val_helper<Head>, val_helper<Tail>...>{}
@@ -249,6 +255,8 @@ namespace jvdata {
         {
             static_assert(filter_size_ > 0, "parameter size must greater than 0");
         };
+		
+		JVFilterArray(const JVFilterArray &) = delete;
 
         JVFilterArray(JVFilterArray&& fa) noexcept
             : caught_(std::move(fa.caught_)), filter_tuple_(std::move(fa.filter_tuple_))
@@ -260,7 +268,8 @@ namespace jvdata {
          * @brief filter input string
          * 
          */
-        bool operator()(const std::string& str) noexcept(false)
+        auto operator()(const std::string& str) noexcept(false)
+			-> boost::optional<const id_type&>
         {
             return filter_all_(str, _seq_generator<filter_size_>{});
         };
@@ -283,21 +292,10 @@ namespace jvdata {
             return true;
         };
 
-        bool is_caught(int i) const 
+        bool is_caught(std::size_t i) const 
         {
             return caught_[i];
         } 
-
-        int remaining() const 
-        {
-            int res = filter_size_;
-            
-            for (auto a : caught_) {
-                if (a) { -- res; }
-            }
-
-            return res;
-        }
 
         const std::tuple<Filters...>& get_filters() const 
         {
@@ -312,5 +310,56 @@ namespace jvdata {
 
     };
 
+	namespace filter
+	{
+		using ra_race             = JVRecordFilter <JV_RA_RACE,             'R', 'A', '7'>;
+		using se_race_uma         = JVRecordFilter <JV_SE_RACE_UMA,         'S', 'E', '7'>;
+		using hr_pay              = JVRecordFilter <JV_HR_PAY,              'H', 'R', '2'>;
+		using h1_hyosu_zenkake    = JVRecordFilter <JV_H1_HYOSU_ZENKAKE,    'H', '1', '5'>;
+		using h6_hyosu_sanrentan  = JVRecordFilter <JV_H6_HYOSU_SANRENTAN,  'H', '6', '5'>;
+		using o1_odds_tanfukuwaku = JVRecordFilter <JV_O1_ODDS_TANFUKUWAKU, 'O', '1', '5'>;
+		using o2_odds_umaren      = JVRecordFilter <JV_O2_ODDS_UMAREN,      'O', '2', '5'>;
+		using o3_odds_wide        = JVRecordFilter <JV_O3_ODDS_WIDE,        'O', '3', '5'>;
+		using o4_odds_umatan      = JVRecordFilter <JV_O4_ODDS_UMATAN,      'O', '4', '5'>;
+		using o5_odds_sanren      = JVRecordFilter <JV_O5_ODDS_SANREN,      'O', '5', '5'>;
+		using o6_odds_sanrentan   = JVRecordFilter <JV_O6_ODDS_SANRENTAN,   'O', '6', '5'>;
+		using wf_info             = JVRecordFilter <JV_WF_INFO,             'W', 'F', '7'>;
+		using jg_jogaiba          = JVRecordFilter <JV_JG_JOGAIBA,          'J', 'G', '1'>;
+		using dm_info             = JVRecordFilter <JV_DM_INFO,             'D', 'M', '3'>;
+		using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '3'>;
+	};
+
+	namespace filter_array
+	{
+
+		/**
+		* @brief filter array for data sort at "RACE"
+		*
+		*/
+		typedef JVFilterArray<  
+			filter::ra_race,
+			filter::se_race_uma,
+			filter::hr_pay,
+			filter::h1_hyosu_zenkake,
+			filter::h6_hyosu_sanrentan,
+			filter::o1_odds_tanfukuwaku,
+			filter::o2_odds_umaren,
+			filter::o3_odds_wide,
+			filter::o4_odds_umatan,
+			filter::o5_odds_sanren,
+			filter::o6_odds_sanrentan,
+			filter::wf_info,
+			filter::jg_jogaiba 
+		> race;
+
+		/**
+		* @brief filter array for data sort at "MING"
+		*
+		*/
+		typedef JVFilterArray<  
+			filter::dm_info,
+			filter::tm_info 
+		> ming;
+	}
 };
 #endif

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string>
+
 namespace umaanalyzeserver {
 
 	using namespace System;
@@ -161,20 +163,31 @@ namespace umaanalyzeserver {
 		}
 #pragma endregion
 	private:
-		void print_text(String^ str) 
-		{
+		void print_text(String^ str) {
 			this->text_box->AppendText(str);
 		}
 
 		template<int N>
-		void print_text(const char(&str)[N]) 
-		{
+		void print_text(const char(&str)[N]) {
 			this->text_box->AppendText(str);
 		}
 
+		template<int N>
+		void print_log(const char(&str)[N]) {
+			this->text_box->AppendText(str);
+		}
+
+		void print_log(const std::string str) {
+			this->text_box->AppendText(gcnew String(str.c_str()));
+
+		}
+
 	private: System::Void setting_button_click(System::Object^  sender, System::EventArgs^  e) {
-		this->jv_link->JVSetUIProperties();
+		if ( long r = this->jv_link->JVSetUIProperties() != 0) {
+			print_log(std::to_string(r));
+		}
 	}
+
 	private: System::Void start_button_click(System::Object^  sender, System::EventArgs^  e) {
 		String^ start_year = this->from_picker->Value.Year.ToString();
 		String^ start_month = this->from_picker->Value.Month.ToString();
@@ -192,6 +205,8 @@ namespace umaanalyzeserver {
 		print_text("stop  :");
 		print_text(stop_year + stop_month + stop_day);
 		print_text("\n");
+
+
 	}
 
 };

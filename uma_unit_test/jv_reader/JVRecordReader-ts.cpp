@@ -5,7 +5,7 @@
 
 BOOST_AUTO_TEST_SUITE(jv_record_reader_sequens_test)
 
-BOOST_AUTO_TEST_CASE(case1)
+BOOST_AUTO_TEST_CASE(jv_record_reader_sequens_test_case1)
 {
     struct test_struct{ 
         char a[5];
@@ -17,7 +17,7 @@ BOOST_AUTO_TEST_CASE(case1)
     BOOST_CHECK_EQUAL(filter_array.is_caught_all(), true);
 }
 
-BOOST_AUTO_TEST_CASE(case2)
+BOOST_AUTO_TEST_CASE(jv_record_reader_sequens_test_case2)
 {
     struct test_struct1{ 
         char a[5];
@@ -48,9 +48,9 @@ BOOST_AUTO_TEST_CASE(case2)
     const filter2& f2 = filter_array.get<filter2>();
     const filter3& f3 = filter_array.get<filter3>();
 
-    BOOST_CHECK_EQUAL(std::string(f1.result_ptr->a, 5) == std::string("ABCDE"), true);
-    BOOST_CHECK_EQUAL(std::string(f2.result_ptr->a, 10) == std::string("CDEFGHIJKL"), true);
-    BOOST_CHECK_EQUAL(std::string(f3.result_ptr->a, 11) == std::string("EDEFGHIJKLa"), true);
+    BOOST_CHECK_EQUAL(std::string(f1.get().front()->a, 5) == std::string("ABCDE"), true);
+    BOOST_CHECK_EQUAL(std::string(f2.get().front()->a, 10) == std::string("CDEFGHIJKL"), true);
+    BOOST_CHECK_EQUAL(std::string(f3.get().front()->a, 11) == std::string("EDEFGHIJKLa"), true);
     
     BOOST_CHECK_EQUAL(filter_array.is_caught(0), true);
     BOOST_CHECK_EQUAL(filter_array.is_caught(1), true);
@@ -79,7 +79,7 @@ BOOST_AUTO_TEST_CASE(case2)
 
     // death test
     BOOST_CHECK_EQUAL(filter_array2(std::string("CDEFGHIJKL")), true);
-    BOOST_CHECK_EQUAL(filter_array2.get<filter2>().fallen_list.size(), 1);
+    BOOST_CHECK_EQUAL(filter_array2.get<filter2>().fallen_list.size(), 2);
     
 }
 
@@ -87,13 +87,13 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(jv_record_reader_is_same_id)
 
-BOOST_AUTO_TEST_CASE(case1)
+BOOST_AUTO_TEST_CASE(is_same_id_case1)
 {
     using id_type = _RACE_ID;
     BOOST_CHECK(sizeof(id_type) == 16);
 }
 
-BOOST_AUTO_TEST_CASE(case2)
+BOOST_AUTO_TEST_CASE(is_same_id_case2)
 {
     using jvdata::is_same_id;
     using id_type = _RACE_ID;
@@ -140,7 +140,7 @@ BOOST_AUTO_TEST_CASE(case2)
     BOOST_CHECK(is_same_id(a, b));
 }
 
-BOOST_AUTO_TEST_CASE(case3)
+BOOST_AUTO_TEST_CASE(is_same_id_case3)
 {
     using jvdata::is_same_id;
     using id_type = _RACE_ID;
@@ -166,7 +166,7 @@ BOOST_AUTO_TEST_CASE(case3)
     BOOST_CHECK(id1 == id2);
 }
 
-BOOST_AUTO_TEST_CASE(case4)
+BOOST_AUTO_TEST_CASE(is_same_id_case4)
 {
     using jvdata::is_same_id;
     using id_type = _RACE_ID;
@@ -197,7 +197,7 @@ BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE(jv_record_reader_is_valid)
 
-BOOST_AUTO_TEST_CASE(case1)
+BOOST_AUTO_TEST_CASE(is_valid_case1)
 {
     using jvdata::is_valid;
     using id_type = _RACE_ID;
@@ -237,7 +237,7 @@ BOOST_AUTO_TEST_CASE(case1)
     BOOST_CHECK(is_valid(filter_array) == false); 
 }
 
-BOOST_AUTO_TEST_CASE(case2)
+BOOST_AUTO_TEST_CASE(is_valid_case2)
 {
     using jvdata::is_valid;
     using id_type = _RACE_ID;

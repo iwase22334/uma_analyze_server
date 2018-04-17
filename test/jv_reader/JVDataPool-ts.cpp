@@ -46,9 +46,9 @@ BOOST_AUTO_TEST_CASE(case1)
     BOOST_CHECK(test_pool.get_data_size() == 2);
 
     for (auto a = test_pool.get_data_list().begin(); a != test_pool.get_data_list().end(); ++ a) {
-        BOOST_CHECK(std::string(a->get<filter1>().result_ptr->a, 5) == "ABCDE");
-        BOOST_CHECK(std::string(a->get<filter2>().result_ptr->a, 10) == "CDEFGHIJKL");
-        BOOST_CHECK(std::string(a->get<filter3>().result_ptr->a, 11) == "EFEFGHIJKLa");
+        BOOST_CHECK(std::string(a->get<filter1>().get().front().a, 5) == "ABCDE");
+        BOOST_CHECK(std::string(a->get<filter2>().get().front().a, 10) == "CDEFGHIJKL");
+        BOOST_CHECK(std::string(a->get<filter3>().get().front().a, 11) == "EFEFGHIJKLa");
     }
 
     test_pool.reset();

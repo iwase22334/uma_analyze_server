@@ -25,7 +25,7 @@ namespace {
     {
         const int syusso_num = jvdata::get_syusso_num(r.get<jvdata::filter::ra_race>());
         mp::RaceInfo ri(syusso_num, 
-                        std::get<0>(r.get_filters()).result_ptr->id);
+                        std::get<0>(r.get_filters()).get().front()->id);
 
         for (int i = 0; i < syusso_num; ++ i) {
 
@@ -91,7 +91,7 @@ namespace wp_estimator { namespace ming_point{
             const jvdata::filter_array::race::tuple_type& f_tuple = race_fa.get_filters();  
 
             id_type target_id;
-            jvdata::copy(target_id, std::get<0>(f_tuple).result_ptr->id);
+            jvdata::copy(target_id, std::get<0>(f_tuple).get().front()->id);
 
             // function for find_if
             auto find_func = [&target_id](const jvdata::filter_array::ming& fa) {
@@ -99,7 +99,7 @@ namespace wp_estimator { namespace ming_point{
                 // assert(is_valid(fa));
 
                 const jvdata::filter_array::ming::tuple_type& f_tuple = fa.get_filters();
-                return std::get<0>(f_tuple).result_ptr->id == target_id;
+                return std::get<0>(f_tuple).get().front()->id == target_id;
 
             };
 

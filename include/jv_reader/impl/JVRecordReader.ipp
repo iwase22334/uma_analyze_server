@@ -44,8 +44,8 @@ struct _Validator {
     template<class Head, class... Tail>
     bool operator()(const _RACE_ID& id, const Tuple& filters, const Head& h, const Tail&... tail) 
     {
-        bool res = !std::memcmp(&(std::get<Head::val>(filters).result_ptr->id), &id, sizeof(_RACE_ID));
-        
+		bool res = true;
+
         for(const auto& fal : std::get<Head::val>(filters).fallen_list) {
             res &= !std::memcmp(&(fal->id), &id, sizeof(_RACE_ID));
         }
@@ -66,7 +66,7 @@ bool _is_valid(const T& fa, const _seq<Head, Tail...>& dum)
 {
     const typename T::tuple_type& t = fa.get_filters();
     return _Validator<typename T::tuple_type, T::filter_size>{}
-                        (std::get<0>(t).result_ptr->id,
+                        (std::get<0>(t).get().front()->id,
                          t, 
                          val_helper<Head>{}, 
                          val_helper<Tail>{}...);

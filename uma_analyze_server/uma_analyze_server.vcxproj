@@ -134,11 +134,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="jv_adapter\jv_adapter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MainForm.cpp" />
     <ClCompile Include="wp_estimator\wp_estimator.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="jv_adapter\jv_adapter.hpp" />
     <ClInclude Include="MainForm.h">
       <FileType>CppForm</FileType>
     </ClInclude>

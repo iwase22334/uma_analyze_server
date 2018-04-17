@@ -1,81 +1,29 @@
 #ifndef JV_DATA_POOL_HPP
 #define JV_DATA_POOL_HPP
 
+#include <jv_reader/JVDataConstants.hpp>
 #include <jv_reader/JVRecordReader.hpp>
-#include <jv_reader/JVData_Structure.h>
+#include <jv_reader/JVDataHandling.hpp>
+
+#include <boost/optional.hpp>
 
 #include <list>
 #include <tuple>
+#include <unordered_map>
 #include <utility>
 
 namespace jvdata
 {
-    namespace filter
-    {
-        typedef JVRecordFilter <JV_RA_RACE,              'R', 'A', '7'> ra_race;
-        typedef JVRecordFilter <JV_SE_RACE_UMA,          'S', 'E', '7'> se_race_uma;
-        typedef JVRecordFilter <JV_HR_PAY,               'H', 'R', '2'> hr_pay;
-        typedef JVRecordFilter <JV_H1_HYOSU_ZENKAKE,     'H', '1', '5'> h1_hyosu_zenkake;
-        typedef JVRecordFilter <JV_H6_HYOSU_SANRENTAN,   'H', '6', '5'> h6_hyosu_sanrentan;
-        typedef JVRecordFilter <JV_O1_ODDS_TANFUKUWAKU,  'O', '1', '5'> o1_odds_tanfukuwaku;
-        typedef JVRecordFilter <JV_O2_ODDS_UMAREN,       'O', '2', '5'> o2_odds_umaren;
-        typedef JVRecordFilter <JV_O3_ODDS_WIDE,         'O', '3', '5'> o3_odds_wide;
-        typedef JVRecordFilter <JV_O4_ODDS_UMATAN,       'O', '4', '5'> o4_odds_umatan;
-        typedef JVRecordFilter <JV_O5_ODDS_SANREN,       'O', '5', '5'> o5_odds_sanren;
-        typedef JVRecordFilter <JV_O6_ODDS_SANRENTAN,    'O', '6', '5'> o6_odds_sanrentan;
-        typedef JVRecordFilter <JV_WF_INFO,              'W', 'F', '7'> wf_info;
-        typedef JVRecordFilter <JV_JG_JOGAIBA,           'J', 'G', '1'> jg_jogaiba;
-        typedef JVRecordFilter <JV_DM_INFO,              'D', 'M', '3'> dm_info;
-        typedef JVRecordFilter <JV_TM_INFO,              'T', 'M', '3'> tm_info;
-    };
-    
-    namespace filter_array
-    {
-        using namespace jvdata::filter;
-
-        /**
-         * @brief filter array for data sort at "RACE"
-         * 
-         */
-        typedef JVFilterArray<  ra_race,
-                                se_race_uma,
-                                hr_pay,
-                                h1_hyosu_zenkake,
-                                h6_hyosu_sanrentan,
-                                o1_odds_tanfukuwaku,
-                                o2_odds_umaren,
-                                o3_odds_wide,
-                                o4_odds_umatan,
-                                o5_odds_sanren,
-                                o6_odds_sanrentan,
-                                wf_info,
-                                jg_jogaiba > race;
-        
-         /**
-         * @brief filter array for data sort at "MING"
-         * 
-         */
-        typedef JVFilterArray<  dm_info,
-                                tm_info > ming;
-    }
 
     template<class T> 
     class JVDataPool
     {
     public:
-        using data_type = T;
-    public:
-
-        enum struct FilterResult
-        {
-            E_Caught, // Any one caught string.
-            E_Pass, // no one caught string
-            E_Complete // Any one caught string and filter_array is filled by data.
-        };
+        using farray_type = T;
+		using farray_map_type = std::unordered_map<std::string, T>;
 
     private:
-        T filter_array_;
-        std::list< T > data_list_;
+        farray_map_type farray_map_;
 
     public:
         /**
@@ -84,71 +32,62 @@ namespace jvdata
          * @param str input record string
          * @return FilterResult 
          */
-        FilterResult operator()(const std::string& str);
+		boost::optional<const id_type&> operator()(const std::string& str);
 
         /**
          * @brief return data_list
          * 
          * @return const std::list< T >& get_data 
          */
-        const std::list< T >& get_data_list() const;
-
-        /**
-         * @brief return buffed data size
-         * 
-         * @return std::size_t get_data_size 
-         */
-        std::size_t get_data_size() const { return data_list_.size(); };
-
-        /**
-         * @brief charge_
-         * 
-         */
-        void next();
-
+        const farray_type& get(const std::string& id) const;
+		const farray_type& get(const jvdata::id_type id) const { return get(to_string(id)); };
         /**
          * @brief initialize
          * 
          */
         void reset();
 
-    private:
-
-        void charge(T && t) 
-        {
-            data_list_.push_back(std::forward<decltype(t)>(t));
-        }
-
     };
     
     template<class T>
-    typename JVDataPool<T>::FilterResult JVDataPool<T>::operator()(const std::string& str)
+    boost::optional<const id_type&> JVDataPool<T>::operator()(const std::string& str)
     {
-        if (filter_array_(str)) return JVDataPool<T>::FilterResult::E_Caught; 
-        return JVDataPool<T>::FilterResult::E_Pass;
+		T farray{};
+		
+		// filter array returns optional, so id has invalid or valid.
+		if (auto id = farray(str)) {
+			
+			// if same id exists in map
+			if ((auto it = this->farray_map_.find(to_string(id))) != farray_map_.end()) {
+				it->operator()(str);
+			}
+
+			// if id not exists in map
+			else {	
+				this->farray_map_.insert({ id, std::move(farray) });
+			}
+
+			return id;
+		}
+
+		return boost::none;
     };
 
     template<class T>
-    const std::list<T>& JVDataPool<T>::get_data_list() const
-    {
-        return this->data_list_;
-    };
-
-    template<class T>
-    void JVDataPool<T>::next()
-    {
-        this->charge(std::move(filter_array_));
+    const typename JVDataPool<T>::farray_type& JVDataPool<T>::get(const std::string& id) const
+    {	
+		assert(this->farray_map_.find(id) != farray_map_.end());
+        return this->farray_map_.at(id);
     };
 
     template<class T>
     void JVDataPool<T>::reset()
     {
-        this->filter_array_.reset();
-        this->data_list_.clear();
+        this->farray_map_.clear();
     };
 
-    typedef JVDataPool<filter_array::race> race_pool;
-    typedef JVDataPool<filter_array::ming> ming_pool;
+    using race_pool = JVDataPool<filter_array::race>;
+    using ming_pool = JVDataPool<filter_array::ming>;
 
 };
 
