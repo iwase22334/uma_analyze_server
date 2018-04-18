@@ -9,28 +9,64 @@
 #define JV_DATA_HANDLING_HPP
 
 #include <jv_reader/JVDataConstants.hpp>
-#include <jv_reader/JVRecordReader.hpp>
 
 #include <iostream>
 #include <cassert>
+#include <string>
 
 namespace jvdata {
 
-	template <class T>
-    bool operator==(const T& a, const T& b) {
-        return std::memcmp(&a, &b, sizeof(T)) == 0 ? true : false;
-    }
-	
 	namespace {
-		
+
+		inline bool operator==(const id_type& a, const id_type& b) {
+			return std::memcmp(&a, &b, sizeof(id_type)) == 0 ? true : false;
+		}
+
+		/**
+		* @brief
+		*
+		* @param id1
+		* @param id2
+		* @return true id is same
+		* @return false id is not same
+		*/
+		inline bool is_same_id(const _RACE_ID& id1, const _RACE_ID& id2) {
+			return (std::memcmp(&(id1), &(id2), sizeof(_RACE_ID)) == 0 ? true : false);
+		}
+
+		/**
+		* @brief check id
+		*
+		* @tparam T1
+		* @tparam T2
+		* @param a
+		* @param b
+		* @return true
+		* @return false
+		*/
+		template<class T1, class T2>
+		auto is_same_id(const T1& a, const T2& b) -> decltype(a.id, b.id, bool())
+		{
+			static_assert(std::is_same<decltype(a.id), _RACE_ID>::value, "invalid type");
+			static_assert(std::is_same<decltype(b.id), _RACE_ID>::value, "invalid type");
+			return (std::memcmp(&(a.id), &(b.id), sizeof(_RACE_ID)) == 0 ? true : false);
+		}
+
+		// class T1 or T2 has no member named id.
+		template<class T1 = void, class T2 = void>
+		auto is_same_id(...) -> bool
+		{
+			static_assert(std::false_type::value, "type has no member named id");
+			return false;
+		}
+
         /**
          * @brief make id string
          * 
          * @param id 
          * @return std::string 
          */
-        inline
-        std::string to_string(const id_type& id)
+        inline std::string to_string(const id_type& id)
         {
             char c[RACE_ID_LENGTH];
             std::memcpy(c, &id, RACE_ID_LENGTH);
@@ -48,7 +84,7 @@ namespace jvdata {
         void copy(T& dst, const T& src) 
         {
             std::memcpy(&dst, &src, sizeof(T));
-        };
+        }
     
         template<int N>
         std::string to_string(const char (&c)[N]) 
@@ -69,8 +105,7 @@ namespace jvdata {
          * @return true 
          * @return false 
          */
-        inline
-        bool is_valid(const id_type& id) 
+        inline bool is_valid(const id_type& id) 
         {
     
             const std::string s_Year(id.Year, 4);
@@ -105,50 +140,9 @@ namespace jvdata {
          * @param race 
          * @return int 
          */
-        inline
-        int get_syusso_num(const JV_RA_RACE& race)
+        inline int get_syusso_num(const JV_RA_RACE& race)
         {
             return std::stoi( std::string(race.SyussoTosu, 2) );
-        }
-    
-        inline
-        int get_syusso_num(const filter::ra_race& f_race)
-        {
-            return get_syusso_num(*(f_race.get().front()));
-        }
-    
-        inline
-        int get_kakutei_jyuni(int uma_ban_target, const filter::se_race_uma& race_uma)
-        {  
-            assert(uma_ban_target >= 0);
-    
-            if(to_integer(race_uma.get().front()->Umaban) == uma_ban_target){
-                return to_integer(race_uma.get().front()->KakuteiJyuni);
-            }
-    
-            for(const auto& a : race_uma.fallen_list){
-                if(to_integer(a->Umaban) == uma_ban_target) {
-                    return to_integer(a->KakuteiJyuni);
-                }
-            }
-    
-            std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
-            return 0;
-        }
-    
-        inline
-        int get_ming_point(int uma_ban_target, const filter::tm_info& tm_info)
-        {
-            assert(uma_ban_target >= 0);
-    
-            for (const auto& a : tm_info.get()) {
-                if (to_integer(a->TMInfo->Umaban) == uma_ban_target) {
-    				return to_integer(a->TMInfo->TMScore);
-                }
-            } 
-    
-            std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
-            return 0;
         }
     
     

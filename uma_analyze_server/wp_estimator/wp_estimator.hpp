@@ -51,9 +51,9 @@ namespace wp_estimator
                             ming_point(std::move(ri.ming_point))
                 {};
         };
-
-        std::list< RaceInfo > extruct_race_info(const jvdata::race_pool& rp, const jvdata::ming_pool& mp);
-        RaceInfo extruct_race_info(const jvdata::filter_array::race& r, const jvdata::filter_array::ming& m);
+		
+        auto extruct_race_info(const jvdata::datapool::race& rp, const jvdata::datapool::ming& mp) -> std::list< RaceInfo >;
+        auto extruct_race_info(const jvdata::filterarray::race& r, const jvdata::filterarray::ming& m) -> RaceInfo;
 
         class WinProbabilityDistribution {
             using RaceInfo = wp_estimator::ming_point::RaceInfo;
@@ -80,8 +80,8 @@ namespace wp_estimator
             static constexpr double band_width_ = 10.0;
 
         private:
-            static std::list< win_pair_t > extruct_win_pair(const std::list<RaceInfo>& ri);
-            static std::list< lose_pair_t > extruct_lose_pair(const std::list<RaceInfo>& ri);
+            static auto extruct_win_pair(const std::list<RaceInfo>& ri) -> std::list< win_pair_t >;
+            static auto extruct_lose_pair(const std::list<RaceInfo>& ri) -> std::list< lose_pair_t >;
 
         };
     
@@ -109,10 +109,11 @@ namespace wp_estimator
                 replace_try_num_(replace_try_default_), 
                 restart_try_num_(restart_try_default_){};
 
-            std::vector<win_prob_list_t> operator()( const WinProbabilityDistribution& wp_dist,
-                                                     const RaceInfo& r_info);
-            std::vector<win_prob_list_t> operator()( const WinProbabilityDistribution& wp_dist,
-                                                     const std::vector<int>& ming_point);
+            auto operator()( const WinProbabilityDistribution& wp_dist,
+                             const RaceInfo& r_info) -> std::vector<win_prob_list_t>;
+
+            auto operator()( const WinProbabilityDistribution& wp_dist,
+                             const std::vector<int>& ming_point) ->std::vector<win_prob_list_t>;
 
             void set_replace_try_num(unsigned int a) { replace_try_num_ = a; };
             void set_restart_try_num(unsigned int a) { restart_try_num_ = a; };

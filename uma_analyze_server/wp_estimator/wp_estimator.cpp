@@ -14,23 +14,23 @@
 namespace {
     using jvdata::id_type;
 
-    static inline 
+    inline 
     la::Vec2d to_vec2d(std::pair<int, int> p) {
         return la::Vec2d((double)p.first, (double)p.second);
     }
 
     namespace mp = wp_estimator::ming_point;
-    mp::RaceInfo mearge(const jvdata::filter_array::race& r,
-                        const jvdata::filter_array::ming& m) 
+    mp::RaceInfo mearge(const jvdata::filterarray::race& fa_race,
+                        const jvdata::filterarray::ming& fa_ming) 
     {
-        const int syusso_num = jvdata::get_syusso_num(r.get<jvdata::filter::ra_race>());
+        const int syusso_num = jvdata::get_syusso_num(fa_race.get<jvdata::filter::ra_race>());
         mp::RaceInfo ri(syusso_num, 
-                        std::get<0>(r.get_filters()).get().front()->id);
+                        std::get<0>(fa_race.get_filters()).get().front()->id);
 
         for (int i = 0; i < syusso_num; ++ i) {
 
-            const int jyuni = jvdata::get_kakutei_jyuni(i, r.get<jvdata::filter::se_race_uma>());
-            const int ming_point = jvdata::get_ming_point(i, m.get<jvdata::filter::tm_info>());
+            const int jyuni = jvdata::get_kakutei_jyuni(i, fa_race.get<jvdata::filter::se_race_uma>());
+            const int ming_point = jvdata::get_ming_point(i, fa_ming.get<jvdata::filter::tm_info>());
 
             if (jyuni <= 0 || jyuni > syusso_num) 
                 throw std::runtime_error( std::string("invalid kakutei jyuni : ") + std::to_string(jyuni) );
@@ -69,47 +69,24 @@ namespace {
 
 namespace wp_estimator { namespace ming_point{
 
-    RaceInfo extruct_race_info(const jvdata::filter_array::race& r, 
-                               const jvdata::filter_array::ming& m) 
+    auto extruct_race_info(const jvdata::filterarray::race& r, 
+                               const jvdata::filterarray::ming& m) -> RaceInfo
     {
         return mearge(r, m);
     };
 
-    std::list< RaceInfo > extruct_race_info(const jvdata::race_pool& rp, const jvdata::ming_pool& mp) 
+    auto extruct_race_info(const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >
     {
-        const std::list<jvdata::filter_array::race>& race_fa_list = rp.get_data_list();
-        const std::list<jvdata::filter_array::ming>& ming_fa_list = mp.get_data_list();
-
         std::list< mp::RaceInfo > res;
 
         // find same id
-        for (const auto& race_fa: race_fa_list) {
-
-            // pool must be validated in other function
-            // assert(is_valid(race_fa));
-
-            const jvdata::filter_array::race::tuple_type& f_tuple = race_fa.get_filters();  
-
-            id_type target_id;
-            jvdata::copy(target_id, std::get<0>(f_tuple).get().front()->id);
-
-            // function for find_if
-            auto find_func = [&target_id](const jvdata::filter_array::ming& fa) {
-
-                // assert(is_valid(fa));
-
-                const jvdata::filter_array::ming::tuple_type& f_tuple = fa.get_filters();
-                return std::get<0>(f_tuple).get().front()->id == target_id;
-
-            };
-
-            // find same id
-            const auto& result_it = std::find_if(ming_fa_list.begin(), ming_fa_list.end(), find_func);
-            
-            if (result_it != ming_fa_list.end()) {
-                mp::RaceInfo ri = mearge(race_fa, *result_it); 
-                res.push_back(std::move(ri));
-            }
+        for (const auto& umap_elem: dp_race.data()) {
+			const auto& it = dp_ming.data().find(umap_elem.first);
+			
+			if (it != dp_ming.data().end()) {
+				mp::RaceInfo ri = mearge(umap_elem.second, it->second);
+				res.push_back(std::move(ri));
+			}
 
         }
 
@@ -144,7 +121,7 @@ namespace wp_estimator { namespace ming_point{
         return w_estimated / l_estimated; 
     };
 
-    std::list< wpd::win_pair_t > wpd::extruct_win_pair(const std::list<RaceInfo>& ri_list)
+    auto wpd::extruct_win_pair(const std::list<RaceInfo>& ri_list) -> std::list< wpd::win_pair_t >
     {
         std::list< wpd::win_pair_t > wp_list;
 
@@ -160,7 +137,7 @@ namespace wp_estimator { namespace ming_point{
         return wp_list;
     };
 
-    std::list< wpd::lose_pair_t > wpd::extruct_lose_pair(const std::list<RaceInfo>& ri_list)
+    auto wpd::extruct_lose_pair(const std::list<RaceInfo>& ri_list) -> std::list< wpd::win_pair_t >
     {
         std::list< wpd::lose_pair_t > lp_list;
 
@@ -180,14 +157,14 @@ namespace wp_estimator { namespace ming_point{
 
 namespace wp_estimator { namespace ming_point{
 
-    std::vector<Simulator::win_prob_list_t> Simulator::operator()(const WinProbabilityDistribution& wp_dist, 
-                                                       const RaceInfo& r_info) 
+	auto Simulator::operator()(const WinProbabilityDistribution& wp_dist,
+		                       const RaceInfo& r_info)->std::vector<Simulator::win_prob_list_t>
     {
         return (*this)(wp_dist, r_info.ming_point);
     };
 
-    std::vector<Simulator::win_prob_list_t> Simulator::operator()(const WinProbabilityDistribution& wp_dist, 
-                                                       const std::vector<int>& ming_point) 
+    auto Simulator::operator()(const WinProbabilityDistribution& wp_dist, 
+                               const std::vector<int>& ming_point) -> std::vector<win_prob_list_t>
     {
         assert(ming_point.size() == horse_num_);
     

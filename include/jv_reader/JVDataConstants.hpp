@@ -7,7 +7,8 @@ namespace jvdata {
 	
 	static constexpr int RACE_ID_LENGTH = 16;
 
-	using id_type = _RACE_ID;
+	typedef _RACE_ID id_type;
+	
 
 }
 

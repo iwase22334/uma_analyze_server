@@ -1,9 +1,14 @@
 #ifndef JV_RECORD_READER_HPP
 #define JV_RECORD_READER_HPP
+
 #include <jv_reader/JVDataConstants.hpp>
+#include <jv_reader/JVDataHandling.hpp>
+
+#include <jv_reader/impl/seq_generator-meta.hpp>
 
 #include <boost/optional.hpp>
 
+#include <iostream>
 #include <string>
 #include <memory>
 #include <tuple>
@@ -11,67 +16,7 @@
 #include <array>
 #include <cassert>
 
-
-
 namespace jvdata {
-
-    #include "impl/JVRecordReader.ipp"
-
-    /**
-     * @brief 
-     * 
-     * @param id1 
-     * @param id2 
-     * @return true id is same
-     * @return false id is not same
-     */
-    static inline
-    bool is_same_id(const _RACE_ID& id1, const _RACE_ID& id2){
-        return (std::memcmp(&(id1), &(id2), sizeof(_RACE_ID)) == 0 ? true : false); 
-    }
-
-    /**
-     * @brief check id
-     * 
-     * @tparam T1 
-     * @tparam T2 
-     * @param a 
-     * @param b 
-     * @return true 
-     * @return false 
-     */
-    template<class T1, class T2>
-    auto is_same_id(const T1& a, const T2& b) -> decltype(a.id, b.id, bool())
-    {
-        static_assert(std::is_same<decltype(a.id), _RACE_ID>::value, "invalid type");
-        static_assert(std::is_same<decltype(b.id), _RACE_ID>::value, "invalid type");
-        return (std::memcmp(&(a.id), &(b.id), sizeof(_RACE_ID)) == 0 ? true : false);
-    };
-
-    // class T1 or T2 has no member named id.
-    template<class T1 = void, class T2 = void>
-    auto is_same_id(...) -> bool
-    {
-        static_assert(std::false_type::value, "type has no member named id");
-        return false;
-    };
-
-    /**
-     * @brief Do Data in Filter array contain same id
-     * @todo This function does not work
-     *  because of the class that is not have the member named id.
-     * 
-     * @tparam Head 
-     * @tparam Tail 
-     * @param fa filter array
-     * @return true all data in filter array has same id
-     * @return false all data in filter array has not same id 
-     */
-    template<class Head, class... Tail>
-    bool is_valid(const JVFilterArray<Head, Tail...>& fa) 
-    {
-        return _is_valid(fa, _seq_generator<1 + sizeof...(Tail)>{});
-    };
 
     /**
      * @brief record value reader
@@ -188,7 +133,7 @@ namespace jvdata {
         };
 
         template <>
-        struct string_fowarder< val_helper<filter_size_ - 1> >
+        struct string_fowarder< meta::val_helper<filter_size_ - 1> >
         {
             auto operator()(std::array<bool, filter_size_>& res,
                             std::tuple<Filters...>& fs,
@@ -213,11 +158,11 @@ namespace jvdata {
          * @param dummy 
          */
         template<int Head, int... Tail>
-        auto filter_all_(const std::string& str, const _seq<Head, Tail...>& dummy) noexcept(false)
+        auto filter_all_(const std::string& str, const meta::seq<Head, Tail...>& dummy) noexcept(false)
 			-> boost::optional<const id_type&> 
         {
             // filter all
-            return string_fowarder<val_helper<Head>, val_helper<Tail>...>{}
+            return string_fowarder<meta::val_helper<Head>, meta::val_helper<Tail>...>{}
                             (
                                 this->caught_,
                                 this->filter_tuple_,
@@ -236,7 +181,7 @@ namespace jvdata {
         };
 
         template<>
-        struct resetter< val_helper<filter_size_ - 1> >
+        struct resetter< meta::val_helper<filter_size_ - 1> >
         {
             void operator()(std::tuple<Filters...>& fs)
             {
@@ -245,9 +190,9 @@ namespace jvdata {
         };
 
         template<int Head, int... Tail>
-        void reset_all_filter_(const _seq<Head, Tail...>& dum)
+        void reset_all_filter_(const meta::seq<Head, Tail...>& dum)
         {
-            resetter< val_helper<Head>, val_helper<Tail>... >{}(filter_tuple_);
+            resetter< meta::val_helper<Head>, meta::val_helper<Tail>... >{}(filter_tuple_);
         };
 
     public:
@@ -271,7 +216,7 @@ namespace jvdata {
         auto operator()(const std::string& str) noexcept(false)
 			-> boost::optional<const id_type&>
         {
-            return filter_all_(str, _seq_generator<filter_size_>{});
+            return filter_all_(str, meta::seq_generator<filter_size_>{});
         };
 
         /**
@@ -281,7 +226,7 @@ namespace jvdata {
         void reset() 
         {
             for (auto& a : caught_) a = false;
-            reset_all_filter_(_seq_generator<filter_size_>{});
+            reset_all_filter_(meta::seq_generator<filter_size_>{});
         };
 
         bool is_caught_all() const
@@ -329,14 +274,14 @@ namespace jvdata {
 		using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '3'>;
 	};
 
-	namespace filter_array
+	namespace filterarray
 	{
 
 		/**
 		* @brief filter array for data sort at "RACE"
 		*
 		*/
-		typedef JVFilterArray<  
+		using race = JVFilterArray<  
 			filter::ra_race,
 			filter::se_race_uma,
 			filter::hr_pay,
@@ -350,16 +295,57 @@ namespace jvdata {
 			filter::o6_odds_sanrentan,
 			filter::wf_info,
 			filter::jg_jogaiba 
-		> race;
+		>;
 
 		/**
 		* @brief filter array for data sort at "MING"
 		*
 		*/
-		typedef JVFilterArray<  
+		using ming = JVFilterArray<  
 			filter::dm_info,
 			filter::tm_info 
-		> ming;
+		>;
+	}
+	
+	namespace {
+	
+		inline int get_syusso_num(const filter::ra_race& f_race)
+		{
+			return get_syusso_num(*(f_race.get().front()));
+		}
+	
+		inline int get_kakutei_jyuni(int uma_ban_target, const filter::se_race_uma& race_uma)
+		{
+			assert(uma_ban_target >= 0);
+	
+			if (to_integer(race_uma.get().front()->Umaban) == uma_ban_target) {
+				return to_integer(race_uma.get().front()->KakuteiJyuni);
+			}
+	
+			for (const auto& a : race_uma.fallen_list) {
+				if (to_integer(a->Umaban) == uma_ban_target) {
+					return to_integer(a->KakuteiJyuni);
+				}
+			}
+	
+			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return 0;
+		}
+	
+		inline int get_ming_point(int uma_ban_target, const filter::tm_info& tm_info)
+		{
+			assert(uma_ban_target >= 0);
+	
+			for (const auto& a : tm_info.get()) {
+				if (to_integer(a->TMInfo->Umaban) == uma_ban_target) {
+					return to_integer(a->TMInfo->TMScore);
+				}
+			}
+
+			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return 0;
+		}
+
 	}
 };
 #endif

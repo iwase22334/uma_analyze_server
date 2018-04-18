@@ -2,8 +2,8 @@
 #define JV_DATA_POOL_HPP
 
 #include <jv_reader/JVDataConstants.hpp>
-#include <jv_reader/JVRecordReader.hpp>
 #include <jv_reader/JVDataHandling.hpp>
+#include <jv_reader/JVRecordReader.hpp>
 
 #include <boost/optional.hpp>
 
@@ -20,10 +20,10 @@ namespace jvdata
     {
     public:
         using farray_type = T;
-		using farray_map_type = std::unordered_map<std::string, T>;
+		using umap_type = std::unordered_map<std::string, T>;
 
     private:
-        farray_map_type farray_map_;
+        umap_type farray_map_;
 
     public:
         /**
@@ -41,6 +41,8 @@ namespace jvdata
          */
         const farray_type& get(const std::string& id) const;
 		const farray_type& get(const jvdata::id_type id) const { return get(to_string(id)); };
+		const umap_type& data() const { return farray_map_; };
+
         /**
          * @brief initialize
          * 
@@ -86,8 +88,12 @@ namespace jvdata
         this->farray_map_.clear();
     };
 
-    using race_pool = JVDataPool<filter_array::race>;
-    using ming_pool = JVDataPool<filter_array::ming>;
+	namespace datapool {
+
+		using race = JVDataPool<filterarray::race>;
+		using ming = JVDataPool<filterarray::ming>;
+
+	}
 
 };
 
