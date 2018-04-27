@@ -6,10 +6,12 @@
  * @date 2018-03-14
  * @todo fix validate function for JVFilterArray
  */
-#include <cassert>
 #include <statistics/statistics.hpp>
 #include <linear/linear.hpp>
+
 #include "wp_estimator.hpp"
+
+#include <cassert>
 
 namespace {
     using jvdata::id_type;
@@ -70,12 +72,13 @@ namespace {
 namespace wp_estimator { namespace ming_point{
 
     auto extruct_race_info(const jvdata::filterarray::race& r, 
-                               const jvdata::filterarray::ming& m) -> RaceInfo
+                           const jvdata::filterarray::ming& m) -> RaceInfo
     {
         return mearge(r, m);
     };
 
-    auto extruct_race_info(const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >
+    auto extruct_race_info(const jvdata::datapool::race& dp_race, 
+                           const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >
     {
         std::list< mp::RaceInfo > res;
 

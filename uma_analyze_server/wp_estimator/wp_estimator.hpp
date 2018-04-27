@@ -8,14 +8,15 @@
 #ifndef WP_ESTIMATOR_HPP
 #define WP_ESTIMATOR_HPP
 
+#include <jv_reader/JVDataHandling.hpp>
+#include <jv_reader/JVDataPool.hpp>
+#include <jv_reader/JVRecordReader.hpp>
+
 #include <list>
 #include <vector>
 #include <array>
 #include <cassert>
 #include <random>
-
-#include <jv_reader/JVDataPool.hpp>
-#include <jv_reader/JVDataHandling.hpp>
 
 namespace wp_estimator
 {
@@ -51,9 +52,16 @@ namespace wp_estimator
                             ming_point(std::move(ri.ming_point))
                 {};
         };
-		
-        auto extruct_race_info(const jvdata::datapool::race& rp, const jvdata::datapool::ming& mp) -> std::list< RaceInfo >;
+
+        /**
+         * @brief Extruct race info for ming point estimation.
+         * 
+         * @param rp 
+         * @param mp 
+         * @return std::list< RaceInfo > 
+         */
         auto extruct_race_info(const jvdata::filterarray::race& r, const jvdata::filterarray::ming& m) -> RaceInfo;
+        auto extruct_race_info(const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >;
 
         class WinProbabilityDistribution {
             using RaceInfo = wp_estimator::ming_point::RaceInfo;

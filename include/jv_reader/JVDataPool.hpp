@@ -41,6 +41,7 @@ namespace jvdata
          */
         const farray_type& get(const std::string& id) const;
 		const farray_type& get(const jvdata::id_type id) const { return get(to_string(id)); };
+
 		const umap_type& data() const { return farray_map_; };
 
         /**
