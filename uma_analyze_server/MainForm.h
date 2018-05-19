@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include "jv_controller/jv_parameter.hpp"
 
 namespace umaanalyzeserver {
 
@@ -24,6 +25,7 @@ namespace umaanalyzeserver {
 			//
 			//TODO: ここにコンストラクター コードを追加します
 			//
+			this->jv_link->JVInit(gcnew String(jvparameter::sid));
 		}
 
 	protected:
@@ -163,51 +165,80 @@ namespace umaanalyzeserver {
 		}
 #pragma endregion
 	private:
+
+		template<int N>
+		std::string to_string(const char(&str)[N]) {
+			return std::string(str);
+		}
+
 		void print_text(String^ str) {
 			this->text_box->AppendText(str);
 		}
 
-		template<int N>
-		void print_text(const char(&str)[N]) {
-			this->text_box->AppendText(str);
+		void print_text(std::string str) {
+			this->text_box->AppendText(gcnew String(str.c_str()));
 		}
 
 		template<int N>
-		void print_log(const char(&str)[N]) {
-			this->text_box->AppendText(str);
+		void print_text(const char(&str)[N]) {
+			print_text(std::string(str));
 		}
 
 		void print_log(const std::string str) {
 			this->text_box->AppendText(gcnew String(str.c_str()));
-
+		}
+		
+		template<int N>
+		void print_log(const char(&str)[N]) {
+			print_log(std::string(str));
 		}
 
+		void print_date(System::DateTime^ date) {
+			print_text(date->ToString("yyyymmdd"));
+		}
+
+		void print_term(System::DateTime^ from, System::DateTime^ to) {
+			print_text("From: ");
+			print_date(from);
+			print_text(", To: ");
+			print_date(to);
+			print_text("\n");
+		}
+
+	private: System::Void download_file(System::DateTime^ from_date) {
+		const int option = 3;
+		int readcount;
+		int downloadcount;
+		System::String^ latest_file;
+
+		int res = jv_link->JVOpen("RACE",
+			from_date->ToString("yyyymmdd"),
+			option,
+			readcount,
+			downloadcount,
+			latest_file);
+
+		if (res != 0) {
+			print_log(__FUNCTION__);
+			print_log(std::string(" - error code: "));
+			print_log(std::to_string(res));
+		}
+
+	}
+
 	private: System::Void setting_button_click(System::Object^  sender, System::EventArgs^  e) {
-		if ( long r = this->jv_link->JVSetUIProperties() != 0) {
+		if (long r = this->jv_link->JVSetUIProperties() != 0) {
 			print_log(std::to_string(r));
 		}
 	}
 
 	private: System::Void start_button_click(System::Object^  sender, System::EventArgs^  e) {
-		String^ start_year = this->from_picker->Value.Year.ToString();
-		String^ start_month = this->from_picker->Value.Month.ToString();
-		String^ start_day = this->from_picker->Value.Day.ToString();
-		
-		String^ stop_year = this->to_picker->Value.Year.ToString();
-		String^ stop_month = this->to_picker->Value.Month.ToString();
-		String^ stop_day = this->to_picker->Value.Day.ToString();
 
-		print_text("analyze start\n");
-		
-		print_text("start :");
-		print_text(start_year + start_month + start_day);
-		print_text("\n");
-		print_text("stop  :");
-		print_text(stop_year + stop_month + stop_day);
-		print_text("\n");
+		print_term(from_picker->Value, to_picker->Value);
 
+		download_file(from_picker->Value);
 
 	}
 
-};
+	};
 }
