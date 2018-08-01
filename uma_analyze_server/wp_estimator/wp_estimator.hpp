@@ -18,10 +18,10 @@
 #include <cassert>
 #include <random>
 
-namespace wp_estimator
+namespace wpestimator
 {
 
-    namespace ming_point {
+    namespace mingpoint {
 
         /**
          * @brief Compressed Race information
@@ -64,7 +64,7 @@ namespace wp_estimator
         auto extruct_race_info(const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >;
 
         class WinProbabilityDistribution {
-            using RaceInfo = wp_estimator::ming_point::RaceInfo;
+            using RaceInfo = wpestimator::mingpoint::RaceInfo;
 
         public:
             using win_pair_t = std::pair<int, int>;
@@ -82,7 +82,7 @@ namespace wp_estimator
              * @brief return win probability on condition that ming_point pair
              * 
              */
-            double operator()(const std::pair<int, int> p) const;
+            double operator()(const std::pair<int, int>& p) const;
 
         private:
             static constexpr double band_width_ = 10.0;
@@ -123,8 +123,8 @@ namespace wp_estimator
             auto operator()( const WinProbabilityDistribution& wp_dist,
                              const std::vector<int>& ming_point) ->std::vector<win_prob_list_t>;
 
-            void set_replace_try_num(unsigned int a) { replace_try_num_ = a; };
-            void set_restart_try_num(unsigned int a) { restart_try_num_ = a; };
+            void set_replace_try_num(unsigned int replace_try_num) { replace_try_num_ = replace_try_num; };
+            void set_restart_try_num(unsigned int restart_try_num) { restart_try_num_ = restart_try_num; };
         
         private:
             int uniform_int_rand(int min, int max) const

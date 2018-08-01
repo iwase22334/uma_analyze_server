@@ -60,14 +60,17 @@ namespace jvdata
 		// filter array returns optional, so id has invalid or valid.
 		if (auto id = farray(str)) {
 			
-			// if same id exists in map
-			if ((auto it = this->farray_map_.find(to_string(id))) != farray_map_.end()) {
-				it->operator()(str);
+			auto it = this->farray_map_.find(to_string(id.get()));
+
+			// same id exists in map
+			if (it != farray_map_.end()) {
+				it->second.operator()(str);
 			}
 
-			// if id not exists in map
+			// id not exists in map
 			else {	
-				this->farray_map_.insert({ id, std::move(farray) });
+				std::string id_str = to_string(id.get());
+				this->farray_map_.insert({ id_str, std::move(farray) });
 			}
 
 			return id;
