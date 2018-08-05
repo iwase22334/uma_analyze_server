@@ -17,11 +17,11 @@ namespace {
     using jvdata::id_type;
 
     inline 
-    la::Vec2d to_vec2d(std::pair<int, int> p) {
+    la::Vec2d to_vec2d(const std::pair<int, int>& p) {
         return la::Vec2d((double)p.first, (double)p.second);
     }
 
-    namespace mp = wp_estimator::ming_point;
+    namespace mp = wpestimator::mingpoint;
     mp::RaceInfo mearge(const jvdata::filterarray::race& fa_race,
                         const jvdata::filterarray::ming& fa_ming) 
     {
@@ -36,6 +36,7 @@ namespace {
 
             if (jyuni <= 0 || jyuni > syusso_num) 
                 throw std::runtime_error( std::string("invalid kakutei jyuni : ") + std::to_string(jyuni) );
+
             if (ming_point < 0 || ming_point == 9999) 
                 throw std::runtime_error( std::string("invalid ming point : ") + std::to_string(ming_point) );
             
@@ -69,7 +70,7 @@ namespace {
 
 };
 
-namespace wp_estimator { namespace ming_point{
+namespace wpestimator { namespace mingpoint{
 
     auto extruct_race_info(const jvdata::filterarray::race& r, 
                            const jvdata::filterarray::ming& m) -> RaceInfo
@@ -102,7 +103,7 @@ namespace wp_estimator { namespace ming_point{
         lp_list_(extruct_lose_pair(ri_list))
     {};
 
-    double wpd::operator()(const std::pair<int, int> point) const 
+    double wpd::operator()(const std::pair<int, int>& point) const 
     {
         assert(wp_list_.size() == lp_list_.size());
 
@@ -158,7 +159,7 @@ namespace wp_estimator { namespace ming_point{
 
 };};
 
-namespace wp_estimator { namespace ming_point{
+namespace wpestimator { namespace mingpoint{
 
 	auto Simulator::operator()(const WinProbabilityDistribution& wp_dist,
 		                       const RaceInfo& r_info)->std::vector<Simulator::win_prob_list_t>

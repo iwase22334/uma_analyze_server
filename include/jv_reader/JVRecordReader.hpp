@@ -20,10 +20,13 @@ namespace jvdata {
 
     /**
      * @brief record value reader
-     * 
+     * This class hooks the string that contains "C1C2C3" at the begining of it,
+	 * and store it as type T.
+	 * C1,C2,C3 is given as template parameter 
      * @tparam T 
      * @tparam C1 
      * @tparam C2 
+	 * @tparam C3 
      */
     template<typename T, char C1, char C2, char C3>
     struct JVRecordFilter {
@@ -255,6 +258,26 @@ namespace jvdata {
 
     };
 
+	namespace label {
+		namespace {
+			constexpr char ra_race[]				= "RA7";
+			constexpr char se_race_uma[]			= "SE7";
+			constexpr char hr_pay[]					= "HR2";
+			constexpr char h1_hyosu_zenkake[]		= "H15";
+			constexpr char h6_hyosu_sanrentan[]		= "H65";
+			constexpr char o1_odds_tanfukuwaku[]	= "O15";
+			constexpr char o2_odds_umaren[]			= "O25";
+			constexpr char o3_odds_wide[]			= "O35";
+			constexpr char o4_odds_umatan[]			= "O45";
+			constexpr char o5_odds_sanren[]			= "O55";
+			constexpr char o6_odds_sanrentan[]		= "O65";
+			constexpr char wf_info[]				= "WF7";
+			constexpr char jg_jogaiba[]				= "JG1";
+			constexpr char dm_info[]				= "DM3";
+			constexpr char tm_info[]				= "TM3";
+		}
+	}
+
 	namespace filter
 	{
 		using ra_race             = JVRecordFilter <JV_RA_RACE,             'R', 'A', '7'>;
@@ -268,7 +291,7 @@ namespace jvdata {
 		using o4_odds_umatan      = JVRecordFilter <JV_O4_ODDS_UMATAN,      'O', '4', '5'>;
 		using o5_odds_sanren      = JVRecordFilter <JV_O5_ODDS_SANREN,      'O', '5', '5'>;
 		using o6_odds_sanrentan   = JVRecordFilter <JV_O6_ODDS_SANRENTAN,   'O', '6', '5'>;
-		using wf_info             = JVRecordFilter <JV_WF_INFO,             'W', 'F', '7'>;
+		//using wf_info             = JVRecordFilter <JV_WF_INFO,             'W', 'F', '7'>;
 		using jg_jogaiba          = JVRecordFilter <JV_JG_JOGAIBA,          'J', 'G', '1'>;
 		using dm_info             = JVRecordFilter <JV_DM_INFO,             'D', 'M', '3'>;
 		using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '3'>;
@@ -293,7 +316,7 @@ namespace jvdata {
 			filter::o4_odds_umatan,
 			filter::o5_odds_sanren,
 			filter::o6_odds_sanrentan,
-			filter::wf_info,
+			//filter::wf_info,
 			filter::jg_jogaiba 
 		>;
 

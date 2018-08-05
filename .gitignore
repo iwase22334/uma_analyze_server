@@ -2,3 +2,5 @@ Debug
 build
 .vs
 uma_analyze_server.vcxproj.user
+*.dll
+.vscode
