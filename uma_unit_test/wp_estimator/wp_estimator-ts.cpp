@@ -14,15 +14,47 @@ namespace {
 	constexpr std::size_t race_id_size = sizeof _RACE_ID;
 
 	inline void _replace_head(std::string& record, const std::string& head) {
-		assert(head.size() == 3);
+		constexpr std::size_t head_size = 3;
+		assert(head.size() == head_size);
 
-		record.replace(0, 3, head);
+		record.replace(0, head_size, head);
 	}
 
 	inline void _replace_id(std::string& record, const std::string& id) {
 		assert(id.size() == race_id_size);
 
-		record.replace(record_id_size, race_id_size, id);
+		std::size_t offset = record_id_size;
+		record.replace(offset, race_id_size, id);
+	}
+
+	inline void _replace_umaban_jyuni(std::string& record, const std::pair<unsigned int, unsigned int>& umaban_jyuni) {
+		assert(umaban_jyuni.first <= 99);
+		assert(umaban_jyuni.second <= 99);
+
+		// replace umaban
+		{
+			constexpr std::size_t umaban_str_length = 2;
+			constexpr std::size_t umaban_offset = ;
+
+			std::stringstream ss;
+			ss << std::setfill('0');
+			ss << std::setw(umaban_str_length) << umaban_jyuni.first;
+
+			record.replace(umaban_offset, umaban_str_length, ss.str());
+		}
+
+		// replace jyuni
+		{
+			constexpr std::size_t jyuni_str_length= 2;
+			constexpr std::size_t jyuni_offset = ;
+
+			std::stringstream ss;
+			ss << std::setfill('0');
+			ss << std::setw(jyuni_str_length) << umaban_jyuni.second;
+
+			record.replace(jyuni_offset, jyuni_str_length, ss.str());
+		}
+				
 	}
 
 	inline std::string to_id_string(unsigned int year, unsigned int month, unsigned int day) {
@@ -40,20 +72,21 @@ namespace {
 		return ss.str();
 	}
 	
-	std::string generate_se_race_uma_record(const std::string id) {
+	std::string generate_se_race_uma_record(const std::string& id, const std::pair<unsigned int, unsigned int>& umaban_jyuni) {
 		std::string head{ "RA7" };
-		std::string record(sizeof JV_RA_RACE, '0');
+		std::string record(sizeof JV_SE_RACE_UMA, '0');
 
 		_replace_head(record, head);
 		_replace_id(record, id);
+		_replace_umaban_jyuni(record, umaban_jyuni);
 
 		return record;
 	}
 
 	
-	std::string generate_dm_info_record(const std::string id) {
+	std::string generate_dm_info_record(const std::string& id) {
 		std::string head["DM3"];
-		std::string record(sizeof JV_TM_INFO, '0');
+		std::string record(sizeof JV_DM_INFO, '0');
 
 		_replace_head(record, head);
 		_replace_id(record, id);
@@ -62,12 +95,12 @@ namespace {
 	}
 
 	
-	std::string generate_null_record(const std::string id, const std::string& head) {
+	std::string generate_null_record(const std::string& id, const std::string& head) {
 		assert(head.size == 3);
 		std::string record(max_record_length, '0');
 
-		replace_head(record, head);
-		replace_id(record, id);
+		_replace_head(record, head);
+		_replace_id(record, id);
 
 		return record;
 	}
@@ -111,7 +144,7 @@ BOOST_AUTO_TEST_CASE(sequens_01) {
 		std::list<std::string> mp_label_set{
 			label::dm_info,
 			label::tm_info,
-		}
+		};
 
 		constexpr unsigned int year = 2001;
 		constexpr unsigned int month = 1;
@@ -124,7 +157,7 @@ BOOST_AUTO_TEST_CASE(sequens_01) {
 			// Flow records into race_pool 
 			for (const auto& head_label : rp_label_set) {
 				// when head_label is not same to the label se_race_uma
-				if (std::strcmp(head_label, label::se_race_uma)) {
+				if (std::strcmp(*head_label, label::se_race_uma)) {
 					race_pool(generate_null_record(curr_id, head_label));
 				}
 
@@ -136,7 +169,7 @@ BOOST_AUTO_TEST_CASE(sequens_01) {
 
 			// Flow records into ming_pool 
 			for (const auto& head_label : mp_label_set) {
-				if (std::strcmp(head_label, label::dm_info)) {
+				if (std::strcmp(*head_label, label::dm_info)) {
 					ming_pool(generate_null_record(curr_id, head_label));
 				}
 
