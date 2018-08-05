@@ -1,0 +1,41 @@
+@startuml
+
+database "DataPool" as pool
+participant "MainThread" as main 
+participant "JVLink" as jvlink
+
+activate main
+  main -> jvlink: JVOpen
+deactivate main
+
+note over jvlink
+Start download from JRA.
+endnote
+
+activate jvlink
+
+loop while remaining file exists
+  main -> jvlink: JVStatus
+  main <-- jvlink: Number of remaining file
+
+deactivate jvlink
+activate main
+
+end
+
+loop status != 0
+  main -> jvlink: JVRead
+deactivate main
+  main <-- jvlink: data line and status
+  pool <- main: pour data
+  pool --> main: race_id
+  alt If race_id includes unused spec
+  main -> jvlink: JVSkip
+  end
+end
+
+activate main
+
+deactivate main
+
+@enduml

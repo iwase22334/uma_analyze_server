@@ -1,0 +1,33 @@
+@startuml
+
+package "MainForm" {
+  [wpdistribution] - construct_if
+  [mainform] --> construct_if
+}
+
+database "db" {
+  [jvlink]
+  [jvlink] -- jvlink_if 
+}
+
+package "SimulatorPkg" {
+  [simulator]
+  [simulator] -left- datainput_if
+  [simulator] -down- simulate_if
+}
+
+package "DataLoaderPkg" {
+  [dataloader]
+}
+
+package "BuyerPkg" {
+  [buyer]
+  [buyer] -- ask_if
+}
+
+[mainform] --> jvlink_if
+[mainform] --> datainput_if
+[mainform] --> simulate_if
+[mainform] --> ask_if
+
+@enduml

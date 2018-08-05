@@ -1,0 +1,35 @@
+@startuml
+
+class MainForm {
+
+}
+
+class JVDataPool {
+
+}
+
+class Simulator {
+
+}
+
+class WinProbDistoribution {
+
+}
+
+class Buyer {
+
+}
+
+class DataLoader {
+
+}
+
+MainForm -- JVDataPool
+MainForm -- Simulator
+MainForm -- Buyer
+MainForm -- DataLoader
+
+Simulator ..> WinProbDistoribution
+WinProbDistoribution ..> JVDataPool
+
+@enduml
