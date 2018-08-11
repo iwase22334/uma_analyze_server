@@ -17,7 +17,7 @@ namespace {
     using jvdata::id_type;
 
     inline 
-    la::Vec2d to_vec2d(const std::pair<int, int>& p) {
+    la::Vec2d to_vec2d(const std::pair<unsigned int, unsigned int>& p) {
         return la::Vec2d((double)p.first, (double)p.second);
     }
 
@@ -25,14 +25,14 @@ namespace {
     mp::RaceInfo mearge(const jvdata::filterarray::race& fa_race,
                         const jvdata::filterarray::ming& fa_ming) 
     {
-        const int syusso_num = jvdata::get_syusso_num(fa_race.get<jvdata::filter::ra_race>());
+        const unsigned int syusso_num = jvdata::get_syusso_num(fa_race.get<jvdata::filter::ra_race>());
         mp::RaceInfo ri(syusso_num, 
                         std::get<0>(fa_race.get_filters()).get().front()->id);
 
-        for (int i = 0; i < syusso_num; ++ i) {
+        for (unsigned int i = 0; i < syusso_num; ++ i) {
 
-            const int jyuni = jvdata::get_kakutei_jyuni(i, fa_race.get<jvdata::filter::se_race_uma>());
-            const int ming_point = jvdata::get_ming_point(i, fa_ming.get<jvdata::filter::tm_info>());
+            const unsigned int jyuni = jvdata::get_kakutei_jyuni(i, fa_race.get<jvdata::filter::se_race_uma>());
+            const unsigned int ming_point = jvdata::get_ming_point(i, fa_ming.get<jvdata::filter::tm_info>());
 
             if (jyuni <= 0 || jyuni > syusso_num) 
                 throw std::runtime_error( std::string("invalid kakutei jyuni : ") + std::to_string(jyuni) );
@@ -49,18 +49,18 @@ namespace {
     };
 
     template <class Comp>
-    std::list< std::pair<int, int> > get_all_ming_point_pair(const mp::RaceInfo& ri, Comp comp_func) 
+    std::list< std::pair<unsigned int, unsigned int> > get_all_ming_point_pair(const mp::RaceInfo& ri, Comp comp_func) 
     {
-        std::list< std::pair<int, int> > pair_list;
+        std::list< std::pair<unsigned int, unsigned int> > pair_list;
         
         for (std::size_t i = 0; i < ri.result.size() - 1; ++ i) {
             for (std::size_t j = i + 1; j < ri.result.size(); ++ j) {
                 if (comp_func(ri.result[i], ri.result[j])) {
-                    pair_list.push_back(std::pair<int, int>(ri.ming_point[i], ri.ming_point[j]));
+                    pair_list.push_back(std::pair<unsigned int, unsigned int>(ri.ming_point[i], ri.ming_point[j]));
                 }
 
                 else {
-                    pair_list.push_back(std::pair<int, int>(ri.ming_point[j], ri.ming_point[i]));
+                    pair_list.push_back(std::pair<unsigned int, unsigned int>(ri.ming_point[j], ri.ming_point[i]));
                 }
             }
         } 
@@ -103,7 +103,7 @@ namespace wpestimator { namespace mingpoint{
         lp_list_(extruct_lose_pair(ri_list))
     {};
 
-    double wpd::operator()(const std::pair<int, int>& point) const 
+    double wpd::operator()(const std::pair<unsigned int, unsigned int>& point) const 
     {
         assert(wp_list_.size() == lp_list_.size());
 
@@ -111,7 +111,7 @@ namespace wpestimator { namespace mingpoint{
         using estimator = statistics::KDensityEstimator<la::Vec2d, kernel>;
 
         auto get_csum = [&point]
-                        (const std::list< std::pair<int, int> >& pl, double bw) -> double {
+                        (const std::list< std::pair<unsigned int, unsigned int> >& pl, double bw) -> double {
             double sum = 0;
             for (const auto& a : pl) {
                 sum += estimator{}(bw, to_vec2d(point), to_vec2d(a));
@@ -129,7 +129,7 @@ namespace wpestimator { namespace mingpoint{
     {
         std::list< wpd::win_pair_t > wp_list;
 
-        auto is_higher = [](int a, int b) -> bool {
+        auto is_higher = [](unsigned int a, unsigned int b) -> bool {
             return a > b;
         };
 
@@ -145,7 +145,7 @@ namespace wpestimator { namespace mingpoint{
     {
         std::list< wpd::lose_pair_t > lp_list;
 
-        auto is_lower = [](int a, int b) -> bool {
+        auto is_lower = [](unsigned int a, unsigned int b) -> bool {
             return a < b;
         };
 
@@ -168,7 +168,7 @@ namespace wpestimator { namespace mingpoint{
     };
 
     auto Simulator::operator()(const WinProbabilityDistribution& wp_dist, 
-                               const std::vector<int>& ming_point) -> std::vector<win_prob_list_t>
+                               const std::vector<unsigned int>& ming_point) -> std::vector<win_prob_list_t>
     {
         assert(ming_point.size() == horse_num_);
     
@@ -177,17 +177,17 @@ namespace wpestimator { namespace mingpoint{
         // initialize compete table
         for (std::size_t i = 0; i < horse_num_; ++ i) {
             for (std::size_t j = 0; j < horse_num_; ++ j) {
-                compete_table[i * ming_point.size() + j] = wp_dist(std::pair<int, int>{ming_point[i], ming_point[j]});
+                compete_table[i * ming_point.size() + j] = wp_dist(std::pair<unsigned int, unsigned int>{ming_point[i], ming_point[j]});
             } 
         }
 
         // simulate race 
-        std::vector< std::vector<int> > rank_total(horse_num_, std::vector<int>(horse_num_, 0));
+        std::vector< std::vector<unsigned int> > rank_total(horse_num_, std::vector<unsigned int>(horse_num_, 0));
         for (unsigned int race = 0; race < restart_try_num_; ++ race) {
-            std::vector<int> rank = random_start();
+            std::vector<unsigned int> rank = random_start();
 
             for (unsigned int replace = 0; replace < replace_try_num_; ++ replace) {
-                std::pair<int, int> p = random_pair();
+                std::pair<unsigned int, unsigned int> p = random_pair();
                 double swap_prob = pickup_from_table(compete_table, p); 
 
                 if (compete(swap_prob)) {

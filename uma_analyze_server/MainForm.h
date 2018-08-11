@@ -372,7 +372,7 @@ namespace umaanalyzeserver {
 		assert(heap::wp_distribution_ptr);
 
 		constexpr std::size_t horse_num = 17;
-		std::vector<int> test_feature{ 1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7 };
+		std::vector<unsigned int> test_feature{ 1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7 };
 		wpestimator::mingpoint::Simulator ming_simulator(horse_num);
 		Buyer<strategy::Simple> simple_buyer;
 
