@@ -30,8 +30,8 @@ namespace jvdata {
 		* @return true id is same
 		* @return false id is not same
 		*/
-		inline bool is_same_id(const _RACE_ID& id1, const _RACE_ID& id2) {
-			return (std::memcmp(&(id1), &(id2), sizeof(_RACE_ID)) == 0 ? true : false);
+		inline bool is_same_id(const id_type& id1, const id_type& id2) {
+			return (std::memcmp(&(id1), &(id2), sizeof(id_type)) == 0 ? true : false);
 		}
 
 		/**
@@ -47,9 +47,9 @@ namespace jvdata {
 		template<class T1, class T2>
 		auto is_same_id(const T1& a, const T2& b) -> decltype(a.id, b.id, bool())
 		{
-			static_assert(std::is_same<decltype(a.id), _RACE_ID>::value, "invalid type");
-			static_assert(std::is_same<decltype(b.id), _RACE_ID>::value, "invalid type");
-			return (std::memcmp(&(a.id), &(b.id), sizeof(_RACE_ID)) == 0 ? true : false);
+			static_assert(std::is_same<decltype(a.id), id_type>::value, "invalid type");
+			static_assert(std::is_same<decltype(b.id), id_type>::value, "invalid type");
+			return (std::memcmp(&(a.id), &(b.id), sizeof(id_type)) == 0 ? true : false);
 		}
 
 		// class T1 or T2 has no member named id.
@@ -71,6 +71,13 @@ namespace jvdata {
             char c[RACE_ID_LENGTH];
             std::memcpy(c, &id, RACE_ID_LENGTH);
             return std::string(c, RACE_ID_LENGTH);
+        }
+
+        inline id_type to_id_type(const std::string& id_str) {
+            assert(id_str.size() == sizeof(id_type));
+            id_type id;
+            std::memcpy(&id, id_str.c_str(), sizeof(id_type));
+            return id;
         }
 
         /**

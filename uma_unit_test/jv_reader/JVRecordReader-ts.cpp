@@ -177,12 +177,12 @@ BOOST_AUTO_TEST_CASE(is_same_id_case3)
     };
 
     jvdata::id_type id2 = {
-		/*.Year =*/ {0, 1, 2, 3},
-		/*.MonthDay =*/ {4, 5, 6, 7},
-		/*.JyoCD =*/ {8, 9},
-		/*.Kaiji =*/ {10, 11},
-		/*.Nichiji =*/ {12, 13},
-		/*.RaceNum =*/ {14, 15}
+        /*.Year =*/{ 0, 1, 2, 3 },
+        /*.MonthDay =*/{ 4, 5, 6, 7 },
+        /*.JyoCD =*/{ 8, 9 },
+        /*.Kaiji =*/{ 10, 11 },
+        /*.Nichiji =*/{ 12, 13 },
+        /*.RaceNum =*/{ 14, 15 }
     };
 
     BOOST_CHECK(is_same_id(id1, id2));
@@ -195,21 +195,21 @@ BOOST_AUTO_TEST_CASE(is_same_id_case4)
 	using jvdata::operator==;
 
     jvdata::id_type id1 = {
-		/*.Year =*/ {0, 1, 2, 3},
-        /*.MonthDay =*/ {4, 5, 6, 7},
-        /*.JyoCD =*/ {8, 9},
-        /*.Kaiji =*/ {10, 11},
-        /*.Nichiji =*/ {12, 13},
-        /*.RaceNum =*/ {14, 15}
+        /*.Year =*/{ 0, 1, 2, 3 },
+        /*.MonthDay =*/{ 4, 5, 6, 7 },
+        /*.JyoCD =*/{ 8, 9 },
+        /*.Kaiji =*/{ 10, 11 },
+        /*.Nichiji =*/{ 12, 13 },
+        /*.RaceNum =*/{ 14, 15 }
     };
 
     jvdata::id_type id2 = {
-        /*.Year =*/ {0, 0, 0, 0},
-        /*.MonthDay =*/ {4, 5, 6, 7},
-        /*.JyoCD =*/ {8, 9},
-        /*.Kaiji =*/ {10, 11},
-        /*.Nichiji =*/ {12, 13},
-        /*.RaceNum =*/ {14, 15}
+        /*.Year =*/{ 0, 0, 0, 0 },
+        /*.MonthDay =*/{ 4, 5, 6, 7 },
+        /*.JyoCD =*/{ 8, 9 },
+        /*.Kaiji =*/{ 10, 11 },
+        /*.Nichiji =*/{ 12, 13 },
+        /*.RaceNum =*/{ 14, 15 }
     };
 
     BOOST_CHECK(is_same_id(id1, id2) == false);

@@ -30,9 +30,10 @@ namespace {
                         std::get<0>(fa_race.get_filters()).get().front()->id);
 
         for (unsigned int i = 0; i < syusso_num; ++ i) {
+            const unsigned int umaban = i + 1;
 
-            const unsigned int jyuni = jvdata::get_kakutei_jyuni(i, fa_race.get<jvdata::filter::se_race_uma>());
-            const unsigned int ming_point = jvdata::get_ming_point(i, fa_ming.get<jvdata::filter::tm_info>());
+            const unsigned int jyuni = jvdata::get_kakutei_jyuni(umaban, fa_race.get<jvdata::filter::se_race_uma>());
+            const unsigned int ming_point = jvdata::get_ming_point(umaban, fa_ming.get<jvdata::filter::tm_info>());
 
             if (jyuni <= 0 || jyuni > syusso_num) 
                 throw std::runtime_error( std::string("invalid kakutei jyuni : ") + std::to_string(jyuni) );
@@ -113,8 +114,9 @@ namespace wpestimator { namespace mingpoint{
         auto get_csum = [&point]
                         (const std::list< std::pair<unsigned int, unsigned int> >& pl, double bw) -> double {
             double sum = 0;
+            estimator est{};
             for (const auto& a : pl) {
-                sum += estimator{}(bw, to_vec2d(point), to_vec2d(a));
+                sum += est(bw, to_vec2d(point), to_vec2d(a));
             }
             return sum;
         };
@@ -122,7 +124,7 @@ namespace wpestimator { namespace mingpoint{
         double w_estimated = get_csum(wp_list_, band_width_) / (wp_list_.size() * band_width_);
         double l_estimated = get_csum(lp_list_, band_width_) / (lp_list_.size() * band_width_);
 
-        return w_estimated / l_estimated; 
+        return w_estimated / (l_estimated + w_estimated);  
     };
 
     auto wpd::extruct_win_pair(const std::list<RaceInfo>& ri_list) -> std::list< wpd::win_pair_t >
@@ -171,31 +173,29 @@ namespace wpestimator { namespace mingpoint{
                                const std::vector<unsigned int>& ming_point) -> std::vector<win_prob_list_t>
     {
         assert(ming_point.size() == horse_num_);
-    
-        std::vector<double> compete_table(horse_num_ * horse_num_);
-
-        // initialize compete table
-        for (std::size_t i = 0; i < horse_num_; ++ i) {
-            for (std::size_t j = 0; j < horse_num_; ++ j) {
-                compete_table[i * ming_point.size() + j] = wp_dist(std::pair<unsigned int, unsigned int>{ming_point[i], ming_point[j]});
-            } 
+        
+        std::vector< std::vector<double> > swap_prob_table(horse_num_, std::vector<double>(horse_num_));
+        for (unsigned int i = 0; i < horse_num_; ++i) {
+            for (unsigned int j = 0; j < horse_num_; ++j) {
+                swap_prob_table[i][j] = wp_dist({ ming_point[i], ming_point[j] });
+            }
         }
 
         // simulate race 
         std::vector< std::vector<unsigned int> > rank_total(horse_num_, std::vector<unsigned int>(horse_num_, 0));
         for (unsigned int race = 0; race < restart_try_num_; ++ race) {
-            std::vector<unsigned int> rank = random_start();
+            std::vector<unsigned int> horse_row = random_start();
 
             for (unsigned int replace = 0; replace < replace_try_num_; ++ replace) {
-                std::pair<unsigned int, unsigned int> p = random_pair();
-                double swap_prob = pickup_from_table(compete_table, p); 
+                std::pair<unsigned int, unsigned int> comp_target = random_pair();
+                double swap_prob = swap_prob_table[horse_row[comp_target.first]][horse_row[comp_target.second]];
 
                 if (compete(swap_prob)) {
-                    swap(rank, p);
+                    swap(horse_row, comp_target);
                 }
             }
 
-            add_result(rank_total, rank);
+            add_result(rank_total, horse_row);
         } 
 
         // aggregate result

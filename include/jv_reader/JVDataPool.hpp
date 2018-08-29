@@ -55,25 +55,19 @@ namespace jvdata
     template<class T>
     boost::optional<const id_type&> JVDataPool<T>::operator()(const std::string& str)
     {
-		T farray{};
+		T tmp_farray{};
 		
 		// filter array returns optional, so id has invalid or valid.
-		if (auto id = farray(str)) {
-			
-			auto it = this->farray_map_.find(to_string(id.get()));
+		if (boost::optional<const id_type&> tmp_id = tmp_farray(str)) {
+            std::string id_str = to_string(tmp_id.get());
 
-			// same id exists in map
-			if (it != farray_map_.end()) {
-				it->second.operator()(str);
-			}
+            // id not exists in map
+            if (this->farray_map_.count(id_str) == 0) {
+                this->farray_map_.emplace(id_str, T{});
+            }
 
-			// id not exists in map
-			else {	
-				std::string id_str = to_string(id.get());
-				this->farray_map_.insert({ id_str, std::move(farray) });
-			}
+		    return farray_map_.at(id_str).operator()(str);
 
-			return id;
 		}
 
 		return boost::none;

@@ -97,8 +97,8 @@ namespace wpestimator
             mutable std::mt19937 mt_rand_;
         
         private:
-            static constexpr unsigned int replace_try_default_ = 100;
-            static constexpr unsigned int restart_try_default_ = 200000;
+            static constexpr unsigned int replace_try_default_ = 70;
+            static constexpr unsigned int restart_try_default_ = 10000;
 
         private:
             unsigned int horse_num_;
@@ -135,7 +135,7 @@ namespace wpestimator
             {
                 return std::uniform_real_distribution<double>{min, max}(mt_rand_);   
             }
-
+            
             std::vector<unsigned int> random_start() const
             {
                 std::vector<unsigned int> initial_rank(horse_num_, 0);
@@ -153,7 +153,7 @@ namespace wpestimator
 
                 for (unsigned int i = 0; i < horse_num_; ++ i) {
                    unsigned int r = uniform_int_rand(0, horse_num_ - i - 1);
-                   initial_rank[find_empty(r)] = i + 1;
+                   initial_rank[find_empty(r)] = i;
                 }
 
                 return initial_rank;
@@ -165,34 +165,28 @@ namespace wpestimator
             { 
                 std::pair<unsigned int, unsigned int> p;
 
-                p.first = p.second = uniform_int_rand(0, horse_num_ - 1);
-                while(p.first == p.second) p.second = uniform_int_rand(0, horse_num_ - 1);
+                p.first = uniform_int_rand(0, horse_num_ - 2);
+                p.second = p.first + 1;
 
                 return p;
             };
 
-            double pickup_from_table(const std::vector<double>& table, const std::pair<unsigned int, unsigned int> p) const 
-            {
-                assert(table.size() == horse_num_ * horse_num_);
-                assert(p.first != p.second);
-
-                return table[p.first + p.second * horse_num_];
-            }
-
-            void swap(std::vector<unsigned int>& rank, std::pair<unsigned int, unsigned int> target) const 
+            void swap(std::vector<unsigned int>& order, std::pair<unsigned int, unsigned int> target) const 
             { 
-                assert(rank.size() == horse_num_);
+                assert(order.size() == horse_num_);
                 assert(target.first != target.second);
 
-                unsigned int tmp = rank[target.first];
-                rank[target.first] = rank[target.second];
-                rank[target.second] = tmp;
+                unsigned int tmp = order[target.first];
+                order[target.first] = order[target.second];
+                order[target.second] = tmp;
             };
 
             void add_result(std::vector< std::vector<unsigned int> >& rank_total, const std::vector<unsigned int>& rank) const 
             {
                 for (std::size_t i = 0; i < horse_num_; ++ i) {
-                    ++ (rank_total[rank[i]])[i];
+                    unsigned int horse_index = rank[i];
+                    unsigned int rank_index = i;
+                    rank_total[horse_index][rank_index] += 1;
                 }
             }
         };

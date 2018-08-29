@@ -341,10 +341,6 @@ namespace jvdata {
 		{
 			assert(uma_ban_target >= 0);
 	
-			if (to_integer(race_uma.get().front()->Umaban) == uma_ban_target) {
-				return to_integer(race_uma.get().front()->KakuteiJyuni);
-			}
-	
 			for (const auto& a : race_uma.fallen_list) {
 				if (to_integer(a->Umaban) == uma_ban_target) {
 					return to_integer(a->KakuteiJyuni);
@@ -358,10 +354,11 @@ namespace jvdata {
 		inline int get_ming_point(int uma_ban_target, const filter::tm_info& tm_info)
 		{
 			assert(uma_ban_target >= 0);
-	
-			for (const auto& a : tm_info.get()) {
-				if (to_integer(a->TMInfo->Umaban) == uma_ban_target) {
-					return to_integer(a->TMInfo->TMScore);
+            assert(tm_info.get().size() == 1);
+
+			for (const auto& a : tm_info.get().front()->TMInfo) {
+				if (to_integer(a.Umaban) == uma_ban_target) {
+					return to_integer(a.TMScore);
 				}
 			}
 
