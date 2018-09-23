@@ -212,11 +212,6 @@ namespace {
 
 BOOST_AUTO_TEST_SUITE(wp_estimator_unit)
 
-BOOST_AUTO_TEST_CASE(sequens_00)
-{
-	BOOST_CHECK(1 == 1);
-}
-
 BOOST_AUTO_TEST_CASE(sequens_01) {
 
 	// shorten namespace name

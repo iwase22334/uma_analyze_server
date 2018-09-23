@@ -371,14 +371,6 @@ namespace umaanalyzeserver {
 	private: System::Void simulation_button_click(System::Object^  sender, System::EventArgs^  e) {
 		assert(heap::wp_distribution_ptr);
 
-		constexpr std::size_t horse_num = 17;
-		std::vector<unsigned int> test_feature{ 1,2,3,4,5,6,7,8,9,0,1,2,3,4,5,6,7 };
-		wpestimator::mingpoint::Simulator ming_simulator(horse_num);
-		Buyer<strategy::Simple> simple_buyer;
-
-		std::vector< std::vector<double> > win_prob = ming_simulator(*heap::wp_distribution_ptr, test_feature);
-
-		print(win_prob[0]);
 	}
 
 };

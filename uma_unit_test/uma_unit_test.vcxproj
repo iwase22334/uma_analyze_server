@@ -136,6 +136,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\uma_analyze_server\wp_estimator\wp_estimator.cpp" />
+    <ClCompile Include="buyer\buyer-ts.cpp" />
     <ClCompile Include="jv_reader\JVDataPool-ts.cpp" />
     <ClCompile Include="jv_reader\JVRecordReader-ts.cpp" />
     <ClCompile Include="TestMain.cpp" />
@@ -147,6 +148,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\uma_analyze_server\buyer\Buyer.hpp" />
     <ClInclude Include="..\uma_analyze_server\wp_estimator\wp_estimator.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -19,6 +19,9 @@
     <Filter Include="src\wp_estimator">
       <UniqueIdentifier>{ab94a287-11af-4aa9-8de8-ed64caa96102}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\buyer">
+      <UniqueIdentifier>{b3c94106-7316-4769-a6c5-c7377dbd09aa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="jv_reader\JVDataPool-ts.cpp">
@@ -36,10 +39,16 @@
     <ClCompile Include="..\uma_analyze_server\wp_estimator\wp_estimator.cpp">
       <Filter>src\wp_estimator</Filter>
     </ClCompile>
+    <ClCompile Include="buyer\buyer-ts.cpp">
+      <Filter>src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\uma_analyze_server\wp_estimator\wp_estimator.hpp">
       <Filter>src\wp_estimator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\uma_analyze_server\buyer\Buyer.hpp">
+      <Filter>src\buyer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

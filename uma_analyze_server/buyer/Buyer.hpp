@@ -5,12 +5,17 @@
 #include <vector>
 
 namespace strategy {
+
 	struct Simple {
 	private:
 		static constexpr double profit_rate_thresh_ = 1.01;
 
 	public:
-		void operator()(std::vector<int>& vote, const std::vector<double>& rate, const std::vector<double>& winprob) const {
+		std::vector<unsigned int> operator()(const std::vector<double>& rate, const std::vector<double>& winprob) const {
+            assert(rate.size() == winprob.size());
+
+            std::vector<unsigned int> vote(rate.size());
+
 			auto vote_it = vote.begin();
 			auto rate_it = rate.cbegin();
 			auto winprob_it = winprob.cbegin();
@@ -27,10 +32,12 @@ namespace strategy {
 				next();
 			}
 
+            return vote;
+
 		}
 	
 	private:
-		int make_vote(double rate, double winprob) const {
+		unsigned int make_vote(double rate, double winprob) const {
 			double excepted_profit_rate = rate * winprob;
 
 			if (excepted_profit_rate > profit_rate_thresh_) {
@@ -46,19 +53,33 @@ namespace strategy {
 template<class T>
 struct Buyer {
 private:
-	template<typename U>
-	static auto check(U v) -> decltype(v(), std::true_type());
-	static auto check(...) -> decltype(std::false_type());
+    
+    template<class U>
+    struct strategy_checker {
+        
+        template<class U_>
+	    static constexpr auto check(U_ v) -> 
+            decltype(v(std::declval<std::vector<double> >(), std::declval<std::vector<double> >()), std::true_type());
+
+	    static constexpr auto check(...) -> decltype(std::false_type());
+
+        typedef decltype(check(std::declval<U>())) type;
+        static constexpr bool value = type::value;
+
+    };
 
 public:
-	void operator()(std::vector<int>& vote, const std::vector<double>& rate, const std::vector<double>& winprob) const
+	std::vector<unsigned int> operator()(const std::vector<double>& rate, const std::vector<double>& winprob) const
 	{
-		static_assert( check(std::decltype<T>())::value, "Invalid buyer strategy");
+		static_assert( strategy_checker<T>::value, "Invalid buyer strategy");
 
-		assert(vote.size() == rate.size());
-		assert(vote.size() == winprob.size());
+		assert(rate.size() == winprob.size());
 
-		T{}(vote, rate, winprob);
+        for (auto a : rate) {
+            assert(a >= 1.0);
+        }
+
+		return T{}(rate, winprob);
 	};
 
 };
