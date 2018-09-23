@@ -13,6 +13,7 @@
 #include "wp_estimator/wp_estimator.hpp"
 #include "buyer/Buyer.hpp"
 
+#include "uas_util.h"
 
 namespace umaanalyzeserver {
 
@@ -57,6 +58,7 @@ namespace umaanalyzeserver {
 				delete components;
 			}
 		}
+
 	private: AxJVDTLabLib::AxJVLink^  jv_link;
 	private: System::Windows::Forms::Button^  setting_button;
 	private: System::Windows::Forms::TextBox^  text_box;
@@ -66,10 +68,6 @@ namespace umaanalyzeserver {
 	private: System::Windows::Forms::Button^  start_button;
 	private: System::Windows::Forms::ProgressBar^  progress_bar;
 	private: System::Windows::Forms::Button^  button1;
-
-
-	protected:
-
 
 	protected:
 
@@ -203,72 +201,6 @@ namespace umaanalyzeserver {
 
 		}
 #pragma endregion
-	private:
-
-		std::string to_string(System::String^ str) {
-			msclr::interop::marshal_context context;
-			return context.marshal_as<std::string>(str);
-		}
-
-		template<int N>
-		std::string to_string(const char(&str)[N]) {
-			return std::string(str);
-		}
-
-		void print_text(String^ str) {
-			this->text_box->AppendText(str);
-		}
-
-		void print_text(std::string str) {
-			this->text_box->AppendText(gcnew String(str.c_str()));
-		}
-
-		template<int N>
-		void print_text(const char(&str)[N]) {
-			print_text(std::string(str));
-		}
-
-		void print_log(const std::string str) {
-			this->text_box->AppendText(gcnew String(str.c_str()));
-		}
-		
-		template<int N>
-		void print_log(const char(&str)[N]) {
-			print_log(std::string(str));
-		}
-
-		void print_date(System::DateTime^ date) {
-			print_text(date->ToString("yyyymmdd"));
-		}
-
-		void print(const jvdata::id_type& id) {
-			print_text(id.JyoCD);
-			print_text(id.Kaiji);
-			print_text(id.Year);
-			print_text(id.MonthDay);
-			print_text(id.Nichiji);
-			print_text(id.RaceNum);
-			print_text("\n");
-		}
-
-		template<class T>
-		void print(const std::vector<T>& vec) {
-			print_text("[ ");
-			for (const auto& a : vec) {
-				print_text(std::to_string(a));
-				print_text(" ");
-			}
-			print_text("]");
-		}
-
-		void print_term(System::DateTime^ from, System::DateTime^ to) {
-			print_text("From: ");
-			print_date(from);
-			print_text(", To: ");
-			print_date(to);
-			print_text("\n");
-		}
-
 
 	private: System::Void step_download(System::String^ dataspec, System::DateTime^ from_date) {
 		const int option = 3;
@@ -301,7 +233,7 @@ namespace umaanalyzeserver {
 			int status = jv_link->JVStatus();
 			if (status < 0) {
 				std::stringstream ss;
-				ss << __FUNCTION__ << __LINE__ << "-error code: " << status << std::endl;
+				ss << __FUNCTION__ << __LINE__ << " - error code: " << status << std::endl;
 				throw std::runtime_error(ss.str());
 			}
 
@@ -324,17 +256,17 @@ namespace umaanalyzeserver {
 			bool show_name = true;
 			while ((read_count = jv_link->JVRead(buf, size, file_name)) != 0) {
 				if (show_name) {
-					print_text(file_name);
-					print_text("\n");
+					uas_print_message(this->text_box, file_name);
+					uas_print_message(this->text_box, "\n");
 					show_name = false;
 				}
 				
 				if (auto res = heap::race_pool(to_string(buf))) {
-					print(res.get());
+					uas_print_message(this->text_box, res.get());
 				}
 
 				else if (auto res = heap::ming_pool(to_string(buf))) {
-					print(res.get());
+					uas_print_message(this->text_box, res.get());
 				}
 
 				if (read_count == -1) show_name = true;
@@ -342,22 +274,22 @@ namespace umaanalyzeserver {
 		}
 	}
 
-	private: System::Void setting_button_click(System::Object^  sender, System::EventArgs^  e) {
+	private: System::Void setting_button_click(System::Object^ sender, System::EventArgs^  e) {
 		// Call jvlink property method
 		if (long r = this->jv_link->JVSetUIProperties() != 0) {
-			print_log(std::to_string(r));
+			uas_print_error(this->text_box, std::to_string(r));
 		}
 	}
 
 	private: System::Void start_button_click(System::Object^  sender, System::EventArgs^  e) {
 		
-		print_term(from_picker->Value, to_picker->Value);
+		uas_print_message(this->text_box, from_picker->Value, to_picker->Value);
 		
 		// Make jvlink to download needed data from JRA
 		step_download("RACE", from_picker->Value);
 		step_download("MING", from_picker->Value);
 		
-		// Read the data from jvlink and pour it to datapool
+		// Read data from jvlink and pour it to datapool
 		pour_data_to_pool();
 		
 		// Extruct race info from datapool 
