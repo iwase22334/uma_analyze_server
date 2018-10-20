@@ -293,8 +293,10 @@ namespace jvdata {
 		using o6_odds_sanrentan   = JVRecordFilter <JV_O6_ODDS_SANRENTAN,   'O', '6', '5'>;
 		//using wf_info             = JVRecordFilter <JV_WF_INFO,             'W', 'F', '7'>;
 		using jg_jogaiba          = JVRecordFilter <JV_JG_JOGAIBA,          'J', 'G', '1'>;
-		using dm_info             = JVRecordFilter <JV_DM_INFO,             'D', 'M', '3'>;
-		using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '3'>;
+		//using dm_info             = JVRecordFilter <JV_DM_INFO,             'D', 'M', '3'>;
+		//using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '3'>;
+		using dm_info             = JVRecordFilter <JV_DM_INFO,             'D', 'M', '7'>;
+		using tm_info             = JVRecordFilter <JV_TM_INFO,             'T', 'M', '7'>;
 	};
 
 	namespace filterarray
@@ -304,7 +306,7 @@ namespace jvdata {
 		* @brief filter array for data sort at "RACE"
 		*
 		*/
-		using race = JVFilterArray<  
+		/*using race = JVFilterArray<  
 			filter::ra_race,
 			filter::se_race_uma,
 			filter::hr_pay,
@@ -318,8 +320,23 @@ namespace jvdata {
 			filter::o6_odds_sanrentan,
 			//filter::wf_info,
 			filter::jg_jogaiba 
-		>;
+		>;*/
 
+        using race = JVFilterArray<  
+			filter::ra_race,
+			filter::se_race_uma
+			//filter::hr_pay,
+	    	//filter::h1_hyosu_zenkake,
+			//filter::h6_hyosu_sanrentan,
+			//filter::o1_odds_tanfukuwaku,
+			//filter::o2_odds_umaren,
+			//filter::o3_odds_wide,
+			//filter::o4_odds_umatan,
+			//filter::o5_odds_sanren,
+			//filter::o6_odds_sanrentan,
+			//filter::wf_info,
+			//filter::jg_jogaiba 
+		>;
 		/**
 		* @brief filter array for data sort at "MING"
 		*
@@ -329,7 +346,7 @@ namespace jvdata {
 			filter::tm_info 
 		>;
 	}
-	
+
 	namespace {
 	
 		inline int get_syusso_num(const filter::ra_race& f_race)
@@ -344,6 +361,20 @@ namespace jvdata {
 			for (const auto& a : race_uma.fallen_list) {
 				if (to_integer(a->Umaban) == uma_ban_target) {
 					return to_integer(a->KakuteiJyuni);
+				}
+			}
+	
+			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return 0;
+		}
+
+		inline int get_ijyo_code(int uma_ban_target, const filter::se_race_uma& race_uma)
+		{
+			assert(uma_ban_target >= 0);
+	
+			for (const auto& a : race_uma.fallen_list) {
+				if (to_integer(a->Umaban) == uma_ban_target) {
+					return get_ijyo_code(*a);
 				}
 			}
 	
@@ -365,7 +396,38 @@ namespace jvdata {
 			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
 			return 0;
 		}
+        
+        bool is_valid(const filterarray::race& fa_race) {
+            const auto& ra_race = fa_race.get<filter::ra_race>();
+            const auto& se_race_uma = fa_race.get<filter::se_race_uma>();
+
+            int syusson_num = get_syusso_num(ra_race);
+
+            if (syusson_num != se_race_uma.get().size()) 
+                return false;
+
+            for (const auto& a : se_race_uma.get()) {
+                if (get_ijyo_code(*a))
+                    return false;
+            }
+
+            return true;
+        }
+
+        bool is_valid(const filterarray::ming& fa_ming) {
+            const auto& dm_info = fa_ming.get<filter::dm_info>();
+            const auto& tm_info = fa_ming.get<filter::tm_info>();
+
+            if (dm_info.get().size() != 1)
+                return false;
+
+            if (tm_info.get().size() != 1)
+                return false;
+
+            return true;
+        }
 
 	}
+
 };
 #endif

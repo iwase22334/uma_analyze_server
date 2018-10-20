@@ -31,7 +31,6 @@ namespace {
 
         for (unsigned int i = 0; i < syusso_num; ++ i) {
             const unsigned int umaban = i + 1;
-
             const unsigned int jyuni = jvdata::get_kakutei_jyuni(umaban, fa_race.get<jvdata::filter::se_race_uma>());
             const unsigned int ming_point = jvdata::get_ming_point(umaban, fa_ming.get<jvdata::filter::tm_info>());
 
@@ -56,6 +55,7 @@ namespace {
         
         for (std::size_t i = 0; i < ri.result.size() - 1; ++ i) {
             for (std::size_t j = i + 1; j < ri.result.size(); ++ j) {
+
                 if (comp_func(ri.result[i], ri.result[j])) {
                     pair_list.push_back(std::pair<unsigned int, unsigned int>(ri.ming_point[i], ri.ming_point[j]));
                 }
@@ -63,6 +63,7 @@ namespace {
                 else {
                     pair_list.push_back(std::pair<unsigned int, unsigned int>(ri.ming_point[j], ri.ming_point[i]));
                 }
+
             }
         } 
 
@@ -73,12 +74,6 @@ namespace {
 
 namespace wpestimator { namespace mingpoint{
 
-    auto extruct_race_info(const jvdata::filterarray::race& r, 
-                           const jvdata::filterarray::ming& m) -> RaceInfo
-    {
-        return mearge(r, m);
-    };
-
     auto extruct_race_info(const jvdata::datapool::race& dp_race, 
                            const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >
     {
@@ -86,17 +81,53 @@ namespace wpestimator { namespace mingpoint{
 
         // find same id
         for (const auto& umap_elem: dp_race.data()) {
+
+            if (!jvdata::is_valid(umap_elem.second))
+                continue;
+
 			const auto& it = dp_ming.data().find(umap_elem.first);
-			
-			if (it != dp_ming.data().end()) {
-				mp::RaceInfo ri = mearge(umap_elem.second, it->second);
-				res.push_back(std::move(ri));
-			}
+
+            if (it != dp_ming.data().end()) {
+
+                if (!jvdata::is_valid(it->second)) 
+                    continue;
+
+                mp::RaceInfo ri = mearge(umap_elem.second, it->second);
+                res.push_back(std::move(ri));
+
+            }
 
         }
 
         return res;
     };
+
+    void extruct_race_info(std::list< RaceInfo >& ri_list, 
+                           const jvdata::datapool::race& dp_race, 
+                           const jvdata::datapool::ming& dp_ming)
+    {
+        // find same id
+        for (const auto& umap_elem: dp_race.data()) {
+
+            if (!jvdata::is_valid(umap_elem.second))
+                continue;
+
+			const auto& it = dp_ming.data().find(umap_elem.first);
+
+            if (it != dp_ming.data().end()) {
+
+                if (!jvdata::is_valid(it->second)) 
+                    continue;
+
+                mp::RaceInfo ri = mearge(umap_elem.second, it->second);
+                ri_list.push_back(std::move(ri));
+
+            }
+
+        }
+
+    };
+
 
     using wpd = WinProbabilityDistribution;
     wpd::WinProbabilityDistribution(const std::list<RaceInfo>& ri_list) :

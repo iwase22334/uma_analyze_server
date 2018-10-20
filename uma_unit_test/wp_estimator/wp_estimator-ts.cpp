@@ -208,6 +208,7 @@ namespace {
         ost << "]" ;
         return ost;
     }
+
 }
 
 BOOST_AUTO_TEST_SUITE(wp_estimator_unit)
@@ -315,7 +316,7 @@ BOOST_AUTO_TEST_CASE(sequens_01) {
 	WinProbabilityDistribution wp_distribution(race_info_list);
 	
 	constexpr unsigned int horse_num = 17;
-	Simulator simulator(17);
+	Simulator simulator(horse_num);
 	std::vector<unsigned int> ming_point_vec{1, 7, 13, 19, 25, 31, 37, 33, 39, 45, 51, 57, 63, 70, 76, 82, 88};
 
 	auto result = simulator(wp_distribution, ming_point_vec);

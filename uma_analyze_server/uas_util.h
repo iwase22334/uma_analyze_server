@@ -8,7 +8,12 @@
 
 namespace {
 
+System::String^ to_system_string(const std::string& str) {
+    return gcnew System::String(str.c_str());
+}
+
 std::string to_string(System::String^ str) {
+    assert(str != nullptr);
     msclr::interop::marshal_context context;
     return context.marshal_as<std::string>(str);
 }
@@ -34,7 +39,7 @@ void uas_print_message(System::Windows::Forms::TextBox^ tb, System::String^ str)
     tb->AppendText(str);
 }
 
-void uas_print_message(System::Windows::Forms::TextBox^ tb, std::string str) {
+void uas_print_message(System::Windows::Forms::TextBox^ tb, const std::string str) {
     tb->AppendText(gcnew System::String(str.c_str()));
 }
 
@@ -76,8 +81,29 @@ void uas_print_message(System::Windows::Forms::TextBox^ tb, const jvdata::id_typ
     );
 }
 
+System::String^ uas_generate_message(const jvdata::id_type& id) {
+    return to_system_string(
+        memory_to_string(id.JyoCD) + std::string("\n") +
+        memory_to_string(id.Kaiji) + std::string("\n") +
+        memory_to_string(id.Year) + std::string("\n") +
+        memory_to_string(id.MonthDay) + std::string("\n") +
+        memory_to_string(id.Nichiji) + std::string("\n") +
+        memory_to_string(id.RaceNum) + std::string("\n")
+    );
+}
+
 void uas_print_error(System::Windows::Forms::TextBox^ tb, const std::string str) {
 	tb->AppendText(gcnew System::String(str.c_str()));
+}
+
+template<class T>
+std::ostream& operator<<(std::ostream& ost, const std::vector<T>& vec) {
+    ost << "[ ";
+    for (const auto& val : vec) {
+        ost << val << " ";
+    }
+    ost << "]" ;
+    return ost;
 }
 
 }

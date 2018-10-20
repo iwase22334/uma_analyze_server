@@ -59,8 +59,8 @@ namespace wpestimator
          * @param mp 
          * @return std::list< RaceInfo > 
          */
-        auto extruct_race_info(const jvdata::filterarray::race& r, const jvdata::filterarray::ming& m) -> RaceInfo;
         auto extruct_race_info(const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming) -> std::list< RaceInfo >;
+        void extruct_race_info(std::list< RaceInfo >& ri_list, const jvdata::datapool::race& dp_race, const jvdata::datapool::ming& dp_ming);
 
         class WinProbabilityDistribution {
             using RaceInfo = wpestimator::mingpoint::RaceInfo;

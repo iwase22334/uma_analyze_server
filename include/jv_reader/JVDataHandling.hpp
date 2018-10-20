@@ -9,7 +9,7 @@
 #define JV_DATA_HANDLING_HPP
 
 #include <jv_reader/JVDataConstants.hpp>
-
+#include <algorithm>
 #include <iostream>
 #include <cassert>
 #include <string>
@@ -102,7 +102,12 @@ namespace jvdata {
         template<int N>
         int to_integer(const char (&c)[N]) 
         {
-            return std::stoi(to_string(c));
+            std::string str = to_string(c);
+            std::size_t boundary = str.find_first_not_of('0');
+            std::size_t first_digit = str.size() - 1;
+            // remove zero padding
+            str.erase(0, boundary < first_digit ? boundary : first_digit);
+            return std::stoi(str);
         }
     
         /**
@@ -149,9 +154,20 @@ namespace jvdata {
          */
         inline int get_syusso_num(const JV_RA_RACE& race)
         {
-            return std::stoi( std::string(race.SyussoTosu, 2) );
+            //return std::stoi( std::string(race.SyussoTosu, 2) );
+            return to_integer(race.SyussoTosu) ;
         }
     
+        /**
+         * @brief get ijyo code from se_race_uma
+         * 
+         * @param uma 
+         * @return int 
+         */
+        inline int get_ijyo_code(const JV_SE_RACE_UMA& uma)
+		{
+            return to_integer(uma.IJyoCD);
+		}
     
   	};
  };
