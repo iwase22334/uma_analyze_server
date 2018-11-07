@@ -84,7 +84,7 @@ namespace wpestimator
             double operator()(const std::pair<unsigned int, unsigned int>& p) const;
 
         private:
-            static constexpr double band_width_ = 10.0;
+            static constexpr double band_width_ = 80.0;
 
         private:
             static auto extruct_win_pair(const std::list<RaceInfo>& ri) -> std::list< win_pair_t >;
@@ -97,8 +97,8 @@ namespace wpestimator
             mutable std::mt19937 mt_rand_;
         
         private:
-            static constexpr unsigned int replace_try_default_ = 70;
-            static constexpr unsigned int restart_try_default_ = 10000;
+            static constexpr unsigned int replace_try_default_ = 200;
+            static constexpr unsigned int restart_try_default_ = 40000;
 
         private:
             unsigned int horse_num_;

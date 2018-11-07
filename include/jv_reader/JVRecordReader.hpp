@@ -3,7 +3,6 @@
 
 #include <jv_reader/JVDataConstants.hpp>
 #include <jv_reader/JVDataHandling.hpp>
-
 #include <jv_reader/impl/seq_generator-meta.hpp>
 
 #include <boost/optional.hpp>
@@ -324,11 +323,11 @@ namespace jvdata {
 
         using race = JVFilterArray<  
 			filter::ra_race,
-			filter::se_race_uma
-			//filter::hr_pay,
-	    	//filter::h1_hyosu_zenkake,
+			filter::se_race_uma,
+			filter::hr_pay,
+	    	filter::h1_hyosu_zenkake,
 			//filter::h6_hyosu_sanrentan,
-			//filter::o1_odds_tanfukuwaku,
+			filter::o1_odds_tanfukuwaku
 			//filter::o2_odds_umaren,
 			//filter::o3_odds_wide,
 			//filter::o4_odds_umatan,
@@ -349,14 +348,15 @@ namespace jvdata {
 
 	namespace {
 	
-		inline int get_syusso_num(const filter::ra_race& f_race)
+		inline int get_syusso_num(const filter::ra_race& race)
 		{
-			return get_syusso_num(*(f_race.get().front()));
+			return get_syusso_num(*(race.get().front()));
 		}
 	
-		inline int get_kakutei_jyuni(int uma_ban_target, const filter::se_race_uma& race_uma)
+		inline auto get_kakutei_jyuni(int uma_ban_target, const filter::se_race_uma& race_uma)
+            -> boost::optional<int>
 		{
-			assert(uma_ban_target >= 0);
+			assert(uma_ban_target > 0);
 	
 			for (const auto& a : race_uma.fallen_list) {
 				if (to_integer(a->Umaban) == uma_ban_target) {
@@ -364,13 +364,14 @@ namespace jvdata {
 				}
 			}
 	
-			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
-			return 0;
+			std::cout << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return boost::none;
 		}
 
-		inline int get_ijyo_code(int uma_ban_target, const filter::se_race_uma& race_uma)
+		inline auto get_ijyo_code(int uma_ban_target, const filter::se_race_uma& race_uma)
+            ->boost::optional<int>
 		{
-			assert(uma_ban_target >= 0);
+			assert(uma_ban_target > 0);
 	
 			for (const auto& a : race_uma.fallen_list) {
 				if (to_integer(a->Umaban) == uma_ban_target) {
@@ -378,13 +379,14 @@ namespace jvdata {
 				}
 			}
 	
-			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
-			return 0;
+			std::cout << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return boost::none;
 		}
 	
-		inline int get_ming_point(int uma_ban_target, const filter::tm_info& tm_info)
+		inline auto get_ming_point(int uma_ban_target, const filter::tm_info& tm_info)
+            -> boost::optional<int>
 		{
-			assert(uma_ban_target >= 0);
+			assert(uma_ban_target > 0);
             assert(tm_info.get().size() == 1);
 
 			for (const auto& a : tm_info.get().front()->TMInfo) {
@@ -393,10 +395,63 @@ namespace jvdata {
 				}
 			}
 
-			std::cerr << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
-			return 0;
+            // ! @todo remove
+			std::cout << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return boost::none;
+
 		}
-        
+
+        inline auto get_odds_tansyou(int uma_ban_target, const filter::o1_odds_tanfukuwaku& odds_tanfukuwaku)
+            -> boost::optional<double>
+		{
+			assert(uma_ban_target > 0);
+            assert(odds_tanfukuwaku.get().size() == 1);
+
+			for (const auto& a : odds_tanfukuwaku.get().front()->OddsTansyoInfo) {
+                // "----": Invalid votes 
+                // "****": Canceled before release 
+                // "    ": Canceled after release
+                // "0000": Not registered
+                if (a.Umaban[0] == '-'
+                    || a.Umaban[0] == '*'
+                    || a.Umaban[0] == ' '
+                    || to_integer(a.Umaban) == 0) {
+                    
+        			return boost::none;
+                }
+
+                if (to_integer(a.Umaban) == uma_ban_target) {
+                    // Odds format : 9999 -> 999.9
+                    return to_integer(a.Odds) * 0.1;
+				}
+			}
+
+            //! @todo remove
+			std::cout << __FILE__ << __LINE__ << "uma_ban not exists" << std::endl;
+			return boost::none;
+		}
+
+        inline auto get_pay_tansyou(const filter::hr_pay& hrpay) 
+            -> std::list< std::pair<int, int> > 
+		{
+            assert(hrpay.get().size() == 1);
+
+            std::list< std::pair<int, int> > res;
+
+            for (const auto& a: hrpay.get().front()->PayTansyo) {
+
+                if (to_integer(a.Umaban) != 0) {
+                    int umaban = to_integer(a.Umaban);
+                    int payout = to_integer(a.Pay);
+
+                    res.push_back({ umaban, payout });
+                }
+
+            }
+
+            return res;
+		}       
+
         bool is_valid(const filterarray::race& fa_race) {
             const auto& ra_race = fa_race.get<filter::ra_race>();
             const auto& se_race_uma = fa_race.get<filter::se_race_uma>();

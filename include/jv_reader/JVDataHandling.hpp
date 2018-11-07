@@ -10,6 +10,8 @@
 
 #include <jv_reader/JVDataConstants.hpp>
 #include <algorithm>
+#include <vector>
+#include <list>
 #include <iostream>
 #include <cassert>
 #include <string>
@@ -98,16 +100,27 @@ namespace jvdata {
         {
             return std::string(c, N);
         }
-    
+
         template<int N>
         int to_integer(const char (&c)[N]) 
         {
             std::string str = to_string(c);
+            if (str.size() == 0) 
+                return 0;
+
             std::size_t boundary = str.find_first_not_of('0');
             std::size_t first_digit = str.size() - 1;
+
             // remove zero padding
             str.erase(0, boundary < first_digit ? boundary : first_digit);
-            return std::stoi(str);
+
+            if (std::all_of(str.cbegin(), str.cend(), isdigit))
+            {
+                return std::stoi(str);
+            }
+
+            // not digit
+            return 0;
         }
     
         /**

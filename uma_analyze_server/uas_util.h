@@ -24,6 +24,34 @@ std::string to_string(const char(&str)[N]) {
     return std::string(str);
 }
 
+template<class T>
+std::string to_string(const std::vector<T>& vec) 
+{
+    std::stringstream ss;
+
+    ss << "[ ";
+    for (const auto& a : vec) {
+        ss << std::right << std::setw(8) << std::setprecision(3) << a << " ";
+    }
+    ss << "]";
+
+    return ss.str();
+}
+
+template<class T>
+std::string to_string(const std::list<T>& lis) 
+{
+    std::stringstream ss;
+
+    ss  << "[ ";
+    for (const auto& a : lis) {
+        ss << std::right << std::setw(8) << std::setprecision(3) << a << " ";
+    }
+    ss << "]";
+
+    return ss.str();
+}
+
 /**
  * @brief to string function for not null terminated string 
  * 

@@ -813,10 +813,9 @@ namespace umaanalyzeserver {
                 for (auto a : vote_log) vote_sum += a;
                 for (auto a : payout_log) payout_sum += a;
  
-                invoke_print_message("votesum :");
+                invoke_print_message("votesum vs payout sum");
                 invoke_print_message(std::to_string(vote_sum));
                 invoke_print_message("\n");
-                invoke_print_message("payout sum");
                 invoke_print_message(std::to_string(payout_sum));
                 invoke_print_message("\n");
 
